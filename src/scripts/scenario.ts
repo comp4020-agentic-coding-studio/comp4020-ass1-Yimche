@@ -56,80 +56,83 @@ export const PLANES: readonly Plane[] = [
 ];
 
 // The scripted choreography, authored as keyframes. Positions are scene
-// percentages: the big departure waits at the apron far left, arrivals hold
-// high over the field, the single runway sits low and centre. The order of the
-// beats is the lesson.
+// percentages: the runway sits low on the left, the terminal gates are centre
+// (planes dock nose-up beneath them), the tower is on the right, and arrivals
+// hold high over the field. The order of the beats is the lesson.
+//
+// Gate dock slots line up under the three terminal gates (x 52 / 60 / 68); the
+// runway threshold is on the left around x 18.
 export const SCENARIO: readonly Beat[] = [
   {
-    callout: "Two arrivals are holding overhead. Plane 3 waits at the gate to depart.",
+    callout: "Two arrivals are holding overhead. Plane 3 is docked at its gate, waiting to depart.",
     directing: null,
     poses: {
-      p1: { x: 40, y: 16, phase: "holding" },
-      p2: { x: 58, y: 12, phase: "holding" },
-      p3: { x: 13, y: 69, phase: "gate" },
+      p1: { x: 40, y: 14, phase: "holding" },
+      p2: { x: 56, y: 10, phase: "holding" },
+      p3: { x: 68, y: 70, phase: "gate" },
     },
   },
   {
     callout: "Plane 1 is lowest on fuel, so it is cleared to land first on runway 27.",
     directing: "p1",
     poses: {
-      p1: { x: 43, y: 46, phase: "approach" },
-      p2: { x: 56, y: 15, phase: "holding" },
-      p3: { x: 13, y: 69, phase: "gate" },
+      p1: { x: 26, y: 52, phase: "approach" },
+      p2: { x: 58, y: 12, phase: "holding" },
+      p3: { x: 68, y: 70, phase: "gate" },
     },
   },
   {
     callout: "Plane 1 is on runway 27. One runway serves one plane, so the rest keep circling.",
     directing: "p1",
     poses: {
-      p1: { x: 46, y: 83, phase: "landing" },
-      p2: { x: 60, y: 13, phase: "holding" },
-      p3: { x: 13, y: 69, phase: "gate" },
+      p1: { x: 18, y: 76, phase: "landing" },
+      p2: { x: 60, y: 11, phase: "holding" },
+      p3: { x: 68, y: 70, phase: "gate" },
     },
   },
   {
-    callout: "Plane 1 clears the runway and taxis in. Runway 27 is free again.",
+    callout: "Plane 1 clears the runway and taxis to its gate. Runway 27 is free again.",
     directing: null,
     poses: {
-      p1: { x: 32, y: 76, phase: "taxi" },
-      p2: { x: 57, y: 16, phase: "holding" },
-      p3: { x: 13, y: 69, phase: "gate" },
+      p1: { x: 36, y: 72, phase: "taxi" },
+      p2: { x: 57, y: 13, phase: "holding" },
+      p3: { x: 68, y: 70, phase: "gate" },
     },
   },
   {
     callout: "With the runway clear, Plane 2 is cleared to land on runway 27.",
     directing: "p2",
     poses: {
-      p1: { x: 20, y: 70, phase: "gate" },
-      p2: { x: 43, y: 46, phase: "approach" },
-      p3: { x: 13, y: 69, phase: "gate" },
+      p1: { x: 52, y: 70, phase: "gate" },
+      p2: { x: 26, y: 52, phase: "approach" },
+      p3: { x: 68, y: 70, phase: "gate" },
     },
   },
   {
     callout: "Plane 2 touches down. Arrivals on fuel always come before a waiting departure.",
     directing: "p2",
     poses: {
-      p1: { x: 20, y: 70, phase: "gate" },
-      p2: { x: 46, y: 83, phase: "landing" },
-      p3: { x: 13, y: 69, phase: "gate" },
+      p1: { x: 52, y: 70, phase: "gate" },
+      p2: { x: 18, y: 76, phase: "landing" },
+      p3: { x: 68, y: 70, phase: "gate" },
     },
   },
   {
-    callout: "No arrivals are left holding, so Plane 3 is cleared to take off from runway 27.",
+    callout: "No arrivals are left holding, so Plane 3 pushes back and is cleared to take off from runway 27.",
     directing: "p3",
     poses: {
-      p1: { x: 20, y: 70, phase: "gate" },
-      p2: { x: 32, y: 76, phase: "taxi" },
-      p3: { x: 46, y: 83, phase: "departing" },
+      p1: { x: 52, y: 70, phase: "gate" },
+      p2: { x: 36, y: 72, phase: "taxi" },
+      p3: { x: 18, y: 76, phase: "departing" },
     },
   },
   {
     callout: "Plane 3 is airborne and clear. Fresh traffic checks in and the cycle begins again.",
     directing: null,
     poses: {
-      p1: { x: 20, y: 70, phase: "gate" },
-      p2: { x: 28, y: 73, phase: "gate" },
-      p3: { x: 96, y: -12, phase: "gone" },
+      p1: { x: 52, y: 70, phase: "gate" },
+      p2: { x: 60, y: 70, phase: "gate" },
+      p3: { x: -10, y: -12, phase: "gone" },
     },
   },
 ];
@@ -140,6 +143,7 @@ export interface PlanePose extends Plane {
   x: number;
   y: number;
   phase: Phase;
+  angle: number; // heading in degrees; 0 is nose-up, clockwise positive
   directing: boolean;
 }
 
@@ -151,6 +155,26 @@ export interface SceneState {
 }
 
 const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
+
+// Heading per phase, in degrees, where 0 is nose-up and clockwise is positive.
+// The plane art is drawn nose-up, so this is the CSS rotation that turns each
+// plane to face the way it is travelling: arrivals descend nose-down-left onto
+// the left runway, taxi nose-right toward the gates, park nose-up on the jet
+// bridge, and depart climbing up-left. Angles interpolate between beats so a
+// plane visibly banks through its turns rather than snapping.
+const ANGLE: Record<Phase, number> = {
+  holding: 24, // banked in a circling turn
+  approach: 205, // descending down and to the left
+  landing: 268, // rolling left along the runway
+  taxi: 92, // turned off the runway, heading right to the gate
+  gate: 0, // parked nose-up, docked on the jet bridge
+  departing: -68, // rolling out and starting to climb, up and left
+  gone: -52, // airborne, climbing away
+};
+
+export function headingFor(phase: Phase): number {
+  return ANGLE[phase];
+}
 
 // The scene at a given beat and progress (0..1) through it. Positions
 // interpolate toward the next beat (wrapping at the end so the demo loops);
@@ -174,6 +198,7 @@ export function sceneAt(beatIndex: number, progress: number): SceneState {
       x: lerp(a.x, b.x, t),
       y: lerp(a.y, b.y, t),
       phase: a.phase,
+      angle: lerp(ANGLE[a.phase], ANGLE[b.phase], t),
       directing: from.directing === plane.id,
     };
   });
@@ -227,11 +252,11 @@ export function planeBlurb(planeId: string, state: SceneState): string {
     case "landing":
       return `${name} is on the runway. A runway serves one plane at a time, so everyone else has to wait.`;
     case "taxi":
-      return `${name} has landed and is taxiing to the gate, which frees the runway for the next plane.`;
+      return `${name} has landed and is taxiing off the runway to its gate, which frees the runway for the next plane.`;
     case "gate":
       return p.kind === "departure"
-        ? `${name} is at the gate, ready to depart as soon as the runway is clear of arrivals.`
-        : `${name} has arrived and is parked at the gate.`;
+        ? `${name} is docked at its gate on the jet bridge, ready to depart as soon as the runway is clear of arrivals.`
+        : `${name} has arrived and is docked at its gate on the jet bridge.`;
     case "departing":
       return `${name} has been cleared for take-off and is rolling down runway 27.`;
     case "gone":

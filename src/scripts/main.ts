@@ -32,7 +32,10 @@ if (planesLayer && SCENARIO.length > 0) {
   let speedIndex = 0;
   let last = performance.now();
 
-  const planeSvg = `<svg viewBox="0 0 24 12" aria-hidden="true"><polygon points="0,6 15,4 22,5 23,6 22,7 15,8" /><polygon points="9,5 14,0 16,5" /><polygon points="9,7 14,12 16,7" /></svg>`;
+  // Top-down jet pointing up (nose toward the terminal), drawn in three tones
+  // so it reads as a solid model rather than a flat sticker: wings/tail behind,
+  // fuselage on top, a centre highlight for a lit edge.
+  const planeSvg = `<svg viewBox="0 0 40 48" aria-hidden="true"><polygon class="plane-wing" points="16,20 1,33 1,36 16,27" /><polygon class="plane-wing" points="24,20 39,33 39,36 24,27" /><polygon class="plane-wing" points="16,40 8,46 8,47 16,43" /><polygon class="plane-wing" points="24,40 32,46 32,47 24,43" /><polygon class="plane-body" points="20,2 24,15 23,42 20,46 17,42 16,15" /><polygon class="plane-hi" points="20,5 21.4,15 21,39 20,42 19,39 18.6,15" /></svg>`;
 
   // --- render -----------------------------------------------------------
   function render(state: SceneState): void {
@@ -44,13 +47,16 @@ if (planesLayer && SCENARIO.length > 0) {
         el.type = "button";
         el.className = "plane";
         el.dataset.plane = plane.id;
-        el.classList.toggle("plane-big", plane.kind === "departure");
+        el.dataset.kind = plane.kind;
         el.innerHTML = `${planeSvg}<span class="plane-tag"></span>`;
         el.addEventListener("click", () => openPlane(plane.id));
         planesLayer!.appendChild(el);
       }
       el.style.left = `${plane.x}%`;
       el.style.top = `${plane.y}%`;
+      // rotate the jet to face its direction of travel; the var drives the SVG
+      // so it never fights the drift animation on the button's own transform.
+      el.style.setProperty("--rot", `${plane.angle}deg`);
       el.dataset.phase = plane.phase;
       el.classList.toggle("directing", plane.directing);
       el.querySelector(".plane-tag")!.textContent = plane.name;

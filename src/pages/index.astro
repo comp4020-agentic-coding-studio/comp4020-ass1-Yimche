@@ -22,7 +22,7 @@ const runways = ["27"];
         viewBox="0 0 100 100"
         preserveAspectRatio="none"
         role="img"
-        aria-label="A low-poly airport in daylight: an open apron with room for a large plane on the left, a terminal with departure and arrival gates in the middle, the control tower on the right, and a single runway across the foreground."
+        aria-label="A flat, diagrammatic airport in daylight: a single runway on the left at ground level, a glazed terminal in the middle with three gates where planes dock on jet bridges, and the control tower on the right. Arrivals hold high in the sky."
       >
         <defs>
           <linearGradient id="sky-grad" x1="0" y1="0" x2="0" y2="1">
@@ -30,25 +30,57 @@ const runways = ["27"];
             <stop offset="1" stop-color="var(--sky)"></stop>
           </linearGradient>
         </defs>
-        <rect x="0" y="0" width="100" height="66" fill="url(#sky-grad)"></rect>
-        <polygon points="0,66 26,57 52,66" fill="var(--hill-far)"></polygon>
-        <polygon points="40,66 68,58 100,66" fill="var(--hill-far)"></polygon>
-        <rect x="0" y="66" width="100" height="34" fill="var(--ground)"></rect>
 
-        <!-- terminal with gates, centre -->
-        <g class="terminal">
-          <rect x="50" y="46" width="26" height="20" fill="var(--structure)"></rect>
-          <rect x="50" y="43" width="26" height="4" fill="var(--structure-2)"></rect>
-          <rect x="52" y="52" width="5" height="14" fill="var(--glass)"></rect>
-          <rect x="60" y="52" width="5" height="14" fill="var(--glass)"></rect>
-          <rect x="68" y="52" width="5" height="14" fill="var(--glass)"></rect>
+        <!-- flat 2D background: sky, distant hills, ground -->
+        <rect x="0" y="0" width="100" height="62" fill="url(#sky-grad)"></rect>
+        <polygon points="0,62 24,54 50,62" fill="var(--hill-far)"></polygon>
+        <polygon points="38,62 70,55 100,62" fill="var(--hill-far)"></polygon>
+        <rect x="0" y="62" width="100" height="38" fill="var(--ground)"></rect>
+
+        <!-- jet bridges: connect each gate down to a docked plane -->
+        <g class="bridges">
+          <rect x="51" y="62" width="2" height="7" fill="var(--bridge)"></rect>
+          <rect x="59" y="62" width="2" height="7" fill="var(--bridge)"></rect>
+          <rect x="67" y="62" width="2" height="7" fill="var(--bridge)"></rect>
         </g>
 
-        <!-- control tower, right -->
+        <!-- terminal with gates, centre: a flat front elevation with detail
+             (roofline, rooftop plant, glazed gate bays with mullions, a
+             concourse band and entrance doors) rather than a plain block -->
+        <g class="terminal">
+          <rect x="46" y="40" width="28" height="22" fill="var(--structure)"></rect>
+          <rect x="44.5" y="37" width="31" height="3" fill="var(--structure-2)"></rect>
+          <rect x="50" y="34" width="4.5" height="3" fill="var(--structure-2)"></rect>
+          <rect x="59" y="33.5" width="5.5" height="3.5" fill="var(--structure-2)"></rect>
+          <rect x="67" y="34.5" width="3" height="2.5" fill="var(--structure-2)"></rect>
+          <rect class="sign" x="47.6" y="40.9" width="9" height="1.6"></rect>
+          <rect class="pane" x="47" y="43.2" width="26" height="2.2"></rect>
+          <rect class="pane" x="50" y="46" width="5" height="13"></rect>
+          <rect class="pane" x="58" y="46" width="5" height="13"></rect>
+          <rect class="pane" x="66" y="46" width="5" height="13"></rect>
+          <rect x="47" y="52.4" width="26" height="0.7" fill="var(--structure-2)"></rect>
+          <rect x="52.2" y="46" width="0.6" height="13" fill="var(--structure)"></rect>
+          <rect x="60.2" y="46" width="0.6" height="13" fill="var(--structure)"></rect>
+          <rect x="68.2" y="46" width="0.6" height="13" fill="var(--structure)"></rect>
+          <rect x="46" y="59" width="28" height="3" fill="var(--structure-2)"></rect>
+          <rect class="pane" x="58.5" y="59" width="3" height="3"></rect>
+        </g>
+
+        <!-- control tower, right: a flat elevation with a glazed cab, banded
+             shaft, roof rail and antenna mast -->
         <g class="tower">
-          <rect x="83" y="30" width="5" height="36" fill="var(--structure)"></rect>
-          <rect x="79" y="23" width="13" height="9" fill="var(--structure-2)"></rect>
-          <rect x="80.5" y="24.5" width="10" height="5.5" fill="var(--glass)"></rect>
+          <rect x="82.5" y="60" width="11" height="2" fill="var(--structure-2)"></rect>
+          <rect x="85" y="30" width="6" height="32" fill="var(--structure)"></rect>
+          <rect class="pane" x="86" y="33" width="1.2" height="25"></rect>
+          <rect class="pane" x="89" y="33" width="1.2" height="25"></rect>
+          <rect x="85" y="44" width="6" height="0.6" fill="var(--structure-2)"></rect>
+          <rect x="85" y="52" width="6" height="0.6" fill="var(--structure-2)"></rect>
+          <rect x="80" y="29" width="16" height="2" fill="var(--structure-2)"></rect>
+          <rect x="81" y="22" width="14" height="7" fill="var(--structure-2)"></rect>
+          <polygon class="pane" points="82,23 94,23 92,28 84,28"></polygon>
+          <rect x="80" y="20" width="16" height="2" fill="var(--structure-2)"></rect>
+          <rect x="87.5" y="11" width="1" height="9" fill="var(--structure-2)"></rect>
+          <circle cx="88" cy="11" r="1.4" fill="var(--accent)"></circle>
         </g>
       </svg>
 
