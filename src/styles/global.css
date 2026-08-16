@@ -241,6 +241,10 @@ body {
 .eras {
   position: absolute;
   inset: var(--head-h) 0 0;
+
+  /* above the full-width name band (z-index 8) so the scrolling era name in the
+     gutter reads over the bar rather than being hidden under it */
+  z-index: 9;
   pointer-events: none;
 }
 
@@ -272,9 +276,9 @@ body {
   position: absolute;
   inset: var(--head-h) 0 0;
 
-  /* above the era-band name so a year label crossing the sticky era text reads
-     over it rather than tangling with the vertical letters */
-  z-index: 1;
+  /* above the era-band name (both above the name band) so a year label crossing
+     the sticky era text reads over it rather than tangling with the letters */
+  z-index: 10;
 
   /* decorative gridlines only: never swallow the pointer, or a hover on a bar
      body lands here instead of on the civilisation it covers */
@@ -326,6 +330,20 @@ body {
   height: var(--head-h);
   margin: 0 8px 0 var(--gutter);
   pointer-events: none;
+}
+
+/* the heads stay aligned to their lanes (positioned inside the gutter), but the
+   bar itself reaches the left edge: this fills the gutter above it so the name
+   band spans the whole width. The era name and year labels below sit on their
+   own higher layer, so they still read over this strip. */
+.group-heads::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 100%;
+  width: var(--gutter);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
 }
 
 .group-head {
