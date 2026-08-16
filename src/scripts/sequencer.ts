@@ -136,6 +136,83 @@ export function clear(
   };
 }
 
+// Why one plane goes before another. This is the decision the controller makes,
+// expressed as a pure function of the state so the "inside ATC" view can explain
+// its own reasoning and the rule can be unit-tested directly.
+export type RuleTag = "emergency" | "low-fuel" | "departure" | "hold";
+
+export interface Recommendation {
+  planeId: string;
+  flight: string;
+  runwayId: string | null; // the free runway to use, or null if none is free
+  action: string;
+  reason: string;
+  rule: RuleTag;
+}
+
+// Rank: an emergency always wins, then the holding arrival with the least fuel
+// (before it becomes the next emergency), then departures. Ties break on fuel.
+function priorityKey(p: Plane): number {
+  if (p.phase === "emergency") return 0;
+  if (p.kind === "arrival") return 1;
+  return 2;
+}
+
+// The next clearance the controller should make, and the rule behind it. Returns
+// null when nothing is waiting for a runway.
+export function recommend(state: SimState): Recommendation | null {
+  const waiting = state.planes.filter(isClearable);
+  if (waiting.length === 0) return null;
+
+  const ranked = [...waiting].sort(
+    (a, b) => priorityKey(a) - priorityKey(b) || a.fuel - b.fuel,
+  );
+  const top = ranked[0]!;
+  const freeRunway = state.runways.find((r) => isRunwayFree(r, state.t));
+
+  if (!freeRunway) {
+    return {
+      planeId: top.id,
+      flight: top.flight,
+      runwayId: null,
+      action: "Everyone holds",
+      reason:
+        "Both runways are inside their separation gap, so no one can be cleared yet. The rest keep circling.",
+      rule: "hold",
+    };
+  }
+
+  const rid = freeRunway.id;
+  if (top.phase === "emergency") {
+    return {
+      planeId: top.id,
+      flight: top.flight,
+      runwayId: rid,
+      action: `Land ${top.flight} on ${rid}`,
+      reason: `${top.flight} is out of fuel and has declared an emergency, so it jumps the queue ahead of everyone.`,
+      rule: "emergency",
+    };
+  }
+  if (top.kind === "arrival") {
+    return {
+      planeId: top.id,
+      flight: top.flight,
+      runwayId: rid,
+      action: `Land ${top.flight} on ${rid}`,
+      reason: `${top.flight} has the least fuel of the holding arrivals, so it goes next before it runs dry.`,
+      rule: "low-fuel",
+    };
+  }
+  return {
+    planeId: top.id,
+    flight: top.flight,
+    runwayId: rid,
+    action: `Depart ${top.flight} from ${rid}`,
+    reason: `No arrivals are waiting on fuel, so ${top.flight} can take the free runway to depart.`,
+    rule: "departure",
+  };
+}
+
 let nextId = 0;
 const ARRIVALS = ["QF", "VA", "JQ", "NZ", "SQ", "EK", "UA", "CX"];
 

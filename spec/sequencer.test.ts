@@ -4,6 +4,7 @@ import {
   clear,
   createInitialState,
   isRunwayFree,
+  recommend,
   removePlane,
   SEPARATION_MS,
   tick,
@@ -99,6 +100,58 @@ describe("sequencer: fuel and time", () => {
     expect(done.phase).toBe("gate"); // arrival has landed and taxied in
     const freed = later.runways.find((r) => r.id === runway.id)!;
     expect(isRunwayFree(freed, later.t)).toBe(true);
+  });
+});
+
+describe("sequencer: who goes next (the decision)", () => {
+  it("recommends the lowest-fuel holding arrival first", () => {
+    // Fixture: QF12 (fuel 8) and VA88 (fuel 20) both holding.
+    const rec = recommend(createInitialState());
+    expect(rec?.flight).toBe("QF12");
+    expect(rec?.rule).toBe("low-fuel");
+    expect(rec?.runwayId).toBeTruthy();
+  });
+
+  it("an emergency jumps ahead of a lower-fuel holding arrival", () => {
+    // Drain enough that QF12 (8s) declares an emergency but VA88 (20s) does not.
+    const state = tick(createInitialState(), 10_000);
+    const emergency = state.planes.find((p) => p.phase === "emergency");
+    expect(emergency).toBeTruthy();
+    const rec = recommend(state);
+    expect(rec?.planeId).toBe(emergency!.id);
+    expect(rec?.rule).toBe("emergency");
+  });
+
+  it("recommends a departure only when no arrivals are waiting", () => {
+    // A single departure at a gate, nothing holding.
+    const base: SimState = {
+      t: 0,
+      planes: [
+        { id: "d1", flight: "JQ5", kind: "departure", phase: "gate", fuel: 20, runwayId: null },
+      ],
+      runways: [{ id: "27", busyUntil: 0 }],
+    };
+    const rec = recommend(base);
+    expect(rec?.flight).toBe("JQ5");
+    expect(rec?.rule).toBe("departure");
+  });
+
+  it("recommends holding when every runway is inside its separation gap", () => {
+    const base: SimState = {
+      t: 1000,
+      planes: [
+        { id: "a1", flight: "QF12", kind: "arrival", phase: "holding", fuel: 5, runwayId: null },
+      ],
+      runways: [{ id: "27", busyUntil: 9000 }],
+    };
+    const rec = recommend(base);
+    expect(rec?.rule).toBe("hold");
+    expect(rec?.runwayId).toBeNull();
+  });
+
+  it("returns null when nothing is waiting for a runway", () => {
+    const base: SimState = { t: 0, planes: [], runways: [{ id: "27", busyUntil: 0 }] };
+    expect(recommend(base)).toBeNull();
   });
 });
 
