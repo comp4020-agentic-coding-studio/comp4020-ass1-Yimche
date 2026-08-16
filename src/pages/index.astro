@@ -1,212 +1,182 @@
 ---
 import Layout from "../layouts/Layout.astro";
 
-// Runways are rendered statically so they exist in the built HTML (the render
-// layer only moves planes onto them). Keep this list in sync with
-// createInitialState() in src/scripts/sequencer.ts.
-const runways = ["27", "34"];
+// One runway, drawn statically so it exists in the built HTML (the contract
+// asserts a .runway[data-runway]; the render layer only moves planes onto it).
+const runways = ["27"];
 ---
 
-<Layout title="One runway, many planes — how ATC decides who lands">
-  <header>
-    <nav aria-label="Views">
-      <button id="view-tower-btn" class="nav-btn" type="button" data-view="airport" aria-current="true">Tower</button>
-      <button id="view-map-btn" class="nav-btn" type="button" data-view="map">Sky map</button>
-      <button id="view-atc-btn" class="nav-btn" type="button" data-view="atc">Inside ATC</button>
-    </nav>
-  </header>
+<Layout title="Who lands, who waits — inside air traffic control">
+  <nav class="site-nav" aria-label="Site">
+    <a href="#stage">Skip to the airport</a>
+  </nav>
 
-  <main>
-    <h1>One runway, many planes</h1>
-    <p class="lede">
-      An airport can only ever land or launch <strong>one plane at a time per
-      runway</strong>, and each plane in the sky is burning fuel while it waits.
-      That single bottleneck is the whole job of air traffic control: decide who
-      goes next. You are in the tower. Clear planes onto a runway, and watch who
-      has to keep circling.
-    </p>
+  <h1 class="sr-only">
+    How air traffic control directs planes into and out of an airport
+  </h1>
 
-    <div class="views">
-      <!-- Airport: side-on view -->
-      <section
-        id="view-airport"
-        class="view scene"
-        aria-label="Side-on view of the airport"
+  <main id="stage" class="stage">
+    <section class="scene" aria-label="The airport, seen from the side">
+      <svg
+        class="backdrop"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+        role="img"
+        aria-label="A low-poly airport in daylight: an open apron with room for a large plane on the left, a terminal with departure and arrival gates in the middle, the control tower on the right, and a single runway across the foreground."
       >
-        <svg
-          class="backdrop"
-          viewBox="0 0 100 60"
-          preserveAspectRatio="xMidYMid slice"
-          role="img"
-          aria-label="A low-poly airport: control tower on the left, terminal on the right, runways along the ground, and planes holding in the sky above."
-        >
-          <rect x="0" y="0" width="100" height="44" fill="var(--sky)"></rect>
-          <polygon points="0,44 18,33 34,44" fill="var(--hill-far)"></polygon>
-          <polygon points="22,44 46,30 70,44" fill="var(--hill-far)"></polygon>
-          <polygon points="58,44 82,34 100,44" fill="var(--hill-far)"></polygon>
-          <rect x="0" y="44" width="100" height="16" fill="var(--ground)"></rect>
-          <!-- ATC tower, left (a click target to the tower interior later) -->
-          <g class="tower">
-            <polygon points="6,44 10,44 9,20 7,20" fill="var(--structure)"></polygon>
-            <polygon points="5.5,20 10.5,20 11,14 5,14" fill="var(--structure-2)"></polygon>
-            <polygon points="6,14 10,14 10,11 6,11" fill="var(--glass)"></polygon>
-          </g>
-          <!-- terminal, right -->
-          <g class="terminal">
-            <polygon points="80,44 98,44 98,32 86,32 80,37" fill="var(--structure)"></polygon>
-            <polygon points="86,32 98,32 98,29 90,29" fill="var(--structure-2)"></polygon>
-          </g>
-        </svg>
+        <defs>
+          <linearGradient id="sky-grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="var(--sky-2)"></stop>
+            <stop offset="1" stop-color="var(--sky)"></stop>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="100" height="66" fill="url(#sky-grad)"></rect>
+        <polygon points="0,66 26,57 52,66" fill="var(--hill-far)"></polygon>
+        <polygon points="40,66 68,58 100,66" fill="var(--hill-far)"></polygon>
+        <rect x="0" y="66" width="100" height="34" fill="var(--ground)"></rect>
 
-        <button id="sky-to-map" type="button" class="sky-hit" aria-label="Open the sky map">
-          <span class="sky-hint">Tap the sky for the map</span>
-        </button>
+        <!-- terminal with gates, centre -->
+        <g class="terminal">
+          <rect x="50" y="46" width="26" height="20" fill="var(--structure)"></rect>
+          <rect x="50" y="43" width="26" height="4" fill="var(--structure-2)"></rect>
+          <rect x="52" y="52" width="5" height="14" fill="var(--glass)"></rect>
+          <rect x="60" y="52" width="5" height="14" fill="var(--glass)"></rect>
+          <rect x="68" y="52" width="5" height="14" fill="var(--glass)"></rect>
+        </g>
 
-        <button id="tower-to-atc" type="button" class="tower-hit" aria-label="Go inside the control tower">
-          <span class="tower-hint">Inside the tower</span>
-        </button>
+        <!-- control tower, right -->
+        <g class="tower">
+          <rect x="83" y="30" width="5" height="36" fill="var(--structure)"></rect>
+          <rect x="79" y="23" width="13" height="9" fill="var(--structure-2)"></rect>
+          <rect x="80.5" y="24.5" width="10" height="5.5" fill="var(--glass)"></rect>
+        </g>
+      </svg>
 
-        <div class="ground-strips" aria-hidden="true">
-          {
-            runways.map((id, i) => (
-              <div class="runway" data-runway={id} style={`--lane:${i};`}>
-                <span class="runway-id">RWY {id}</span>
-              </div>
-            ))
-          }
+      <!-- flight board, top-left in the sky -->
+      <div id="board" class="board">
+        <h2 class="board-title">Flights</h2>
+        <div class="board-cols">
+          <div class="board-col">
+            <h3 class="board-head">Arrivals</h3>
+            <ul id="board-arrivals" class="board-list"></ul>
+          </div>
+          <div class="board-col">
+            <h3 class="board-head">Takeoff</h3>
+            <ul id="board-takeoff" class="board-list"></ul>
+          </div>
         </div>
-        <div id="planes" class="planes" aria-hidden="true"></div>
-      </section>
-
-      <!-- Sky map: top-down view -->
-      <section
-        id="view-map"
-        class="view map-wrap"
-        aria-label="Top-down map of the sky around the airport"
-        hidden
-      >
-        <svg
-          class="map"
-          viewBox="0 0 100 100"
-          preserveAspectRatio="xMidYMid meet"
-          role="img"
-          aria-label="A radar-style top-down map: the airport and its two runways at the centre, a holding fix to the north-east where arrivals circle, and each aircraft's recent track."
-        >
-          <rect x="0" y="0" width="100" height="100" fill="var(--radar)"></rect>
-          <!-- range rings -->
-          <circle cx="50" cy="58" r="40" class="ring"></circle>
-          <circle cx="50" cy="58" r="26" class="ring"></circle>
-          <circle cx="50" cy="58" r="12" class="ring"></circle>
-          <!-- runways, top-down -->
-          <g class="map-runways">
-            <rect x="34" y="56.5" width="32" height="3" rx="1" data-map-runway="27"></rect>
-            <rect x="48.5" y="44" width="3" height="28" rx="1" transform="rotate(-20 50 58)" data-map-runway="34"></rect>
-          </g>
-          <text x="67" y="60.5" class="map-label">27</text>
-          <text x="41" y="43" class="map-label">34</text>
-          <!-- holding fix -->
-          <circle cx="76" cy="26" r="1.6" class="fix"></circle>
-          <text x="79" y="27" class="map-label">HOLD</text>
-          <!-- compass -->
-          <text x="50" y="8" class="compass">N</text>
-          <!-- trails and live aircraft are drawn by main.ts -->
-          <g id="map-trails"></g>
-          <g id="map-planes"></g>
-        </svg>
-        <p class="map-hint">
-          Arrivals circle the holding fix, burning fuel, until you clear one to a
-          runway. Their tracks fade behind them.
-        </p>
-      </section>
-
-      <!-- Inside ATC: the decision screen -->
-      <section
-        id="view-atc"
-        class="view atc"
-        aria-label="Inside the control tower"
-        hidden
-      >
-        <div class="atc-cab" aria-hidden="true">
-          <svg class="cab-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-            <rect x="0" y="0" width="100" height="100" fill="var(--structure-2)"></rect>
-            <!-- angled window onto the airfield -->
-            <polygon points="8,10 92,10 84,60 16,60" fill="var(--sky)"></polygon>
-            <polygon points="16,60 84,60 84,64 16,64" fill="var(--structure)"></polygon>
-            <!-- distant hills through the glass -->
-            <polygon points="16,60 40,44 64,60" fill="var(--hill-far)"></polygon>
-            <polygon points="48,60 72,46 84,55 84,60" fill="var(--hill-far)"></polygon>
-            <!-- mullions -->
-            <line x1="50" y1="10" x2="50" y2="60" stroke="var(--structure)" stroke-width="0.8"></line>
-            <line x1="30" y1="10" x2="26" y2="60" stroke="var(--structure)" stroke-width="0.6"></line>
-            <line x1="70" y1="10" x2="74" y2="60" stroke="var(--structure)" stroke-width="0.6"></line>
-            <!-- console -->
-            <polygon points="10,80 90,80 96,100 4,100" fill="var(--structure)"></polygon>
-            <rect x="20" y="84" width="26" height="9" rx="1" fill="var(--glass)"></rect>
-            <rect x="54" y="84" width="26" height="9" rx="1" fill="var(--glass)"></rect>
-          </svg>
-        </div>
-
-        <div class="atc-screen" role="region" aria-label="Controller decision screen">
-          <p class="atc-kicker">Controller decision</p>
-          <p id="atc-action" class="atc-action">Loading</p>
-          <p id="atc-reason" class="atc-reason"></p>
-          <button id="atc-do" type="button">Clear it</button>
-
-          <dl class="atc-readout">
-            <div><dt>Holding</dt><dd id="atc-holding">0</dd></div>
-            <div><dt>Lowest fuel</dt><dd id="atc-lowfuel">none</dd></div>
-            <div><dt>Runways free</dt><dd id="atc-free">0</dd></div>
-          </dl>
-
-          <h2 class="atc-h">What goes into the call</h2>
-          <ul class="atc-factors">
-            <li>
-              <strong>One runway, one plane.</strong> A runway can serve a single
-              aircraft at a time, so every clearance is a choice about who waits.
-            </li>
-            <li>
-              <strong>The separation gap.</strong> After each movement the runway
-              stays locked for a spacing interval, which is why you cannot simply
-              clear everyone at once.
-            </li>
-            <li>
-              <strong>Fuel is the clock.</strong> Holding arrivals burn fuel, so
-              the lowest tank sets the order, and an empty tank forces the call.
-            </li>
-          </ul>
-        </div>
-      </section>
-    </div>
-
-    <section class="panel" aria-label="Controls and flight strips">
-      <div class="controls">
-        <button id="add-arrival" type="button">+ Arrival</button>
-        <button id="add-departure" type="button">+ Departure</button>
-        <button id="pause" type="button" aria-pressed="false">Pause</button>
-        <button id="reset" type="button">Reset</button>
       </div>
 
-      <div class="stats" role="status" aria-live="polite">
-        <span id="stat-landed">Landed 0</span>
-        <span id="stat-departed">Departed 0</span>
-        <span id="stat-emergency" class="danger">Emergencies 0</span>
+      <!-- what the tower is calling now -->
+      <p id="callout" class="callout" role="status" aria-live="polite"></p>
+
+      <!-- clickable regions -->
+      <button id="open-gate" class="hotspot hotspot-gate" type="button" aria-label="How gates are chosen">
+        <span class="hotspot-label">Gates</span>
+      </button>
+      <button id="open-tower" class="hotspot hotspot-tower" type="button" aria-label="Look inside the control tower">
+        <span class="hotspot-label">Tower</span>
+      </button>
+
+      <!-- the scarce runway -->
+      <div class="runways" aria-hidden="true">
+        {
+          runways.map((id) => (
+            <div class="runway" data-runway={id}>
+              <span class="runway-id">RWY {id}</span>
+            </div>
+          ))
+        }
       </div>
 
-      <h2 class="board-title">Flight strips</h2>
-      <p id="board-empty" class="board-empty" hidden>
-        Quiet skies. Add an arrival or a departure.
-      </p>
-      <ul id="board" class="board" aria-label="Waiting and active flights"></ul>
+      <!-- planes, drawn and positioned by main.ts -->
+      <div id="planes" class="planes"></div>
     </section>
 
-    <footer class="note">
-      <p>
-        Fuel drains while a plane holds. Let it hit zero and the flight declares
-        an emergency and jumps the queue, which is exactly why a controller
-        cannot just serve arrivals in the order they turned up.
-      </p>
-    </footer>
+    <div class="controls" role="group" aria-label="Playback">
+      <button id="play" type="button" aria-pressed="true">Pause</button>
+      <button id="step" type="button">Step</button>
+      <button id="reset" type="button">Reset</button>
+      <button id="speed" type="button" aria-label="Change playback speed">1&#215;</button>
+    </div>
   </main>
+
+  <!-- popups -->
+  <div id="popup-gate" class="popup" hidden>
+    <div class="popup-backdrop" data-close></div>
+    <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="popup-gate-title">
+      <button class="popup-close" type="button" data-close aria-label="Close">Close</button>
+      <h2 id="popup-gate-title" class="popup-title">Choosing a gate</h2>
+      <div class="popup-body">
+        <p>
+          A gate is not simply the nearest free door. Ground control matches each
+          plane to a stand that actually fits it and keeps the apron flowing.
+        </p>
+        <ul>
+          <li>
+            <strong>Size.</strong> The stand and jet bridge have to fit the
+            aircraft. A large widebody cannot use a small regional stand.
+          </li>
+          <li>
+            <strong>Airline and terminal.</strong> Airlines are grouped by
+            terminal so passengers and baggage stay close to their connections.
+          </li>
+          <li>
+            <strong>Ground traffic.</strong> A gate is picked so the plane can
+            taxi in and push back later without blocking everyone behind it.
+          </li>
+          <li>
+            <strong>Turnaround.</strong> A quick turnaround earns a stand near the
+            runway; a long layover can sit further out.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div id="popup-tower" class="popup" hidden>
+    <div class="popup-backdrop" data-close></div>
+    <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="popup-tower-title">
+      <button class="popup-close" type="button" data-close aria-label="Close">Close</button>
+      <h2 id="popup-tower-title" class="popup-title">Inside the control tower</h2>
+      <div class="popup-body">
+        <p>
+          From the tower, one controller owns the runway. Every call answers a
+          single question: who uses it next?
+        </p>
+        <ul>
+          <li>
+            <strong>One runway, one plane.</strong> The runway serves a single
+            aircraft at a time, so each clearance is a choice about who waits.
+          </li>
+          <li>
+            <strong>Fuel is the clock.</strong> Holding arrivals burn fuel, so
+            the arrival with the least fuel is cleared first, and an empty tank
+            forces the call.
+          </li>
+          <li>
+            <strong>Arrivals before departures.</strong> A plane already in the
+            air comes before one waiting safely at the gate.
+          </li>
+        </ul>
+        <p>
+          Watch the board and the callout as the demo runs: that is the
+          controller thinking out loud.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="popup-plane" class="popup" hidden>
+    <div class="popup-backdrop" data-close></div>
+    <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="popup-plane-title">
+      <button class="popup-close" type="button" data-close aria-label="Close">Close</button>
+      <h2 id="popup-plane-title" class="popup-title">Plane</h2>
+      <div class="popup-body">
+        <p id="popup-plane-body"></p>
+      </div>
+    </div>
+  </div>
 
   <script src="../scripts/main.ts"></script>
 </Layout>

@@ -3,10 +3,11 @@ import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { beforeAll, describe, expect, it } from "vitest";
 
-// Contract for the built page's interactive shell. The sequencing behaviour is
-// covered by sequencer.test.ts against the pure model; this checks the DOM the
+// Contract for the built page's interactive shell. The choreography itself is
+// covered by scenario.test.ts against the pure model; this checks the DOM the
 // visitor actually reaches, and a keyboard/a11y floor the sensor roster does
-// not otherwise watch (see AGENTS.md).
+// not otherwise watch (see AGENTS.md). The demo is now a guided, scripted
+// walkthrough, so the controls are playback (play/step/reset), not manual adds.
 
 let doc: Document;
 
@@ -17,11 +18,21 @@ beforeAll(() => {
 });
 
 describe("airport page: interactive shell", () => {
-  it("ships the sim controls as real buttons", () => {
-    for (const id of ["#add-arrival", "#add-departure", "#pause", "#reset"]) {
+  it("ships the playback controls as real buttons", () => {
+    for (const id of ["#play", "#step", "#reset"]) {
       const el = doc.querySelector(id);
       expect(el, `${id} is missing from the built page`).toBeTruthy();
       expect(el!.tagName, `${id} must be a <button>, not a clickable div`).toBe("BUTTON");
+    }
+  });
+
+  it("ships the scene hotspots as real, named buttons", () => {
+    for (const id of ["#open-gate", "#open-tower"]) {
+      const el = doc.querySelector(id);
+      expect(el, `${id} is missing from the built page`).toBeTruthy();
+      expect(el!.tagName, `${id} must be a <button>, not a clickable div`).toBe("BUTTON");
+      const name = (el!.textContent ?? "").trim() || el!.getAttribute("aria-label")?.trim();
+      expect(name, `${id} needs an accessible name`).toBeTruthy();
     }
   });
 
