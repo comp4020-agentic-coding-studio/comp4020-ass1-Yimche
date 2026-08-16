@@ -12,6 +12,7 @@ const runways = ["27", "34"];
     <nav aria-label="Views">
       <button id="view-tower-btn" class="nav-btn" type="button" data-view="airport" aria-current="true">Tower</button>
       <button id="view-map-btn" class="nav-btn" type="button" data-view="map">Sky map</button>
+      <button id="view-atc-btn" class="nav-btn" type="button" data-view="atc">Inside ATC</button>
     </nav>
   </header>
 
@@ -59,6 +60,10 @@ const runways = ["27", "34"];
 
         <button id="sky-to-map" type="button" class="sky-hit" aria-label="Open the sky map">
           <span class="sky-hint">Tap the sky for the map</span>
+        </button>
+
+        <button id="tower-to-atc" type="button" class="tower-hit" aria-label="Go inside the control tower">
+          <span class="tower-hint">Inside the tower</span>
         </button>
 
         <div class="ground-strips" aria-hidden="true">
@@ -112,6 +117,64 @@ const runways = ["27", "34"];
           Arrivals circle the holding fix, burning fuel, until you clear one to a
           runway. Their tracks fade behind them.
         </p>
+      </section>
+
+      <!-- Inside ATC: the decision screen -->
+      <section
+        id="view-atc"
+        class="view atc"
+        aria-label="Inside the control tower"
+        hidden
+      >
+        <div class="atc-cab" aria-hidden="true">
+          <svg class="cab-svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
+            <rect x="0" y="0" width="100" height="100" fill="var(--structure-2)"></rect>
+            <!-- angled window onto the airfield -->
+            <polygon points="8,10 92,10 84,60 16,60" fill="var(--sky)"></polygon>
+            <polygon points="16,60 84,60 84,64 16,64" fill="var(--structure)"></polygon>
+            <!-- distant hills through the glass -->
+            <polygon points="16,60 40,44 64,60" fill="var(--hill-far)"></polygon>
+            <polygon points="48,60 72,46 84,55 84,60" fill="var(--hill-far)"></polygon>
+            <!-- mullions -->
+            <line x1="50" y1="10" x2="50" y2="60" stroke="var(--structure)" stroke-width="0.8"></line>
+            <line x1="30" y1="10" x2="26" y2="60" stroke="var(--structure)" stroke-width="0.6"></line>
+            <line x1="70" y1="10" x2="74" y2="60" stroke="var(--structure)" stroke-width="0.6"></line>
+            <!-- console -->
+            <polygon points="10,80 90,80 96,100 4,100" fill="var(--structure)"></polygon>
+            <rect x="20" y="84" width="26" height="9" rx="1" fill="var(--glass)"></rect>
+            <rect x="54" y="84" width="26" height="9" rx="1" fill="var(--glass)"></rect>
+          </svg>
+        </div>
+
+        <div class="atc-screen" role="region" aria-label="Controller decision screen">
+          <p class="atc-kicker">Controller decision</p>
+          <p id="atc-action" class="atc-action">Loading</p>
+          <p id="atc-reason" class="atc-reason"></p>
+          <button id="atc-do" type="button">Clear it</button>
+
+          <dl class="atc-readout">
+            <div><dt>Holding</dt><dd id="atc-holding">0</dd></div>
+            <div><dt>Lowest fuel</dt><dd id="atc-lowfuel">none</dd></div>
+            <div><dt>Runways free</dt><dd id="atc-free">0</dd></div>
+          </dl>
+
+          <h2 class="atc-h">What goes into the call</h2>
+          <ul class="atc-factors">
+            <li>
+              <strong>One runway, one plane.</strong> A runway can serve a single
+              aircraft at a time, so every clearance is a choice about who waits.
+            </li>
+            <li>
+              <strong>The separation gap.</strong> After each movement the runway
+              stays locked for a spacing interval, which is why you cannot simply
+              clear everyone at once.
+            </li>
+            <li>
+              <strong>Fuel is the clock.</strong> Holding arrivals burn fuel, so
+              the lowest tank sets the order, and an empty tank forces the call.
+            </li>
+          </ul>
+        </div>
       </section>
     </div>
 

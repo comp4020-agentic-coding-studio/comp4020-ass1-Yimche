@@ -6,6 +6,7 @@ import {
   clear,
   createInitialState,
   isRunwayFree,
+  recommend,
   removePlane,
   START_FUEL,
   tick,
@@ -34,12 +35,22 @@ const mapPlanes = document.getElementById("map-planes");
 const mapTrails = document.getElementById("map-trails");
 const airportView = document.getElementById("view-airport");
 const mapView = document.getElementById("view-map");
+const atcView = document.getElementById("view-atc");
+
+// M3 inside-ATC decision screen.
+const atcAction = document.getElementById("atc-action");
+const atcReason = document.getElementById("atc-reason");
+const atcHolding = document.getElementById("atc-holding");
+const atcLowFuel = document.getElementById("atc-lowfuel");
+const atcFree = document.getElementById("atc-free");
+const atcScreen = document.querySelector<HTMLElement>(".atc-screen");
 
 // Guard: if the scene markup isn't present, do nothing rather than throw.
 if (planesLayer && board) {
   let state: SimState = createInitialState();
   let paused = false;
   let last = performance.now();
+  const atcDoBtn = $<HTMLButtonElement>("#atc-do");
 
   const counted = { landed: new Set<string>(), departed: new Set<string>(), emergency: new Set<string>() };
   let landed = 0;
@@ -160,6 +171,41 @@ if (planesLayer && board) {
     if (statEmergency) statEmergency.textContent = `Emergencies ${emergencies}`;
 
     renderMap();
+    renderAtc();
+  }
+
+  // --- inside ATC (the decision screen) --------------------------------
+  // Surfaces recommend() live: the call the controller should make now, the
+  // rule behind it, and the numbers that drove it. The "Clear it" button acts
+  // on that recommendation so the explanation and the action stay in step.
+  function renderAtc(): void {
+    const rec = recommend(state);
+    const holding = state.planes.filter((p) => p.phase === "holding").length;
+    const waiting = state.planes.filter(
+      (p) => p.kind === "arrival" && (p.phase === "holding" || p.phase === "emergency"),
+    );
+    const lowest = waiting.reduce<Plane | null>(
+      (lo, p) => (lo === null || p.fuel < lo.fuel ? p : lo),
+      null,
+    );
+    const free = state.runways.filter((r) => isRunwayFree(r, state.t)).length;
+
+    if (atcHolding) atcHolding.textContent = String(holding);
+    if (atcLowFuel)
+      atcLowFuel.textContent = lowest ? `${lowest.flight} (${Math.ceil(lowest.fuel)}s)` : "none";
+    if (atcFree) atcFree.textContent = `${free} of ${state.runways.length}`;
+
+    if (atcScreen) atcScreen.dataset.rule = rec?.rule ?? "idle";
+    if (atcAction)
+      atcAction.textContent = rec ? rec.action : "Quiet skies, nothing waiting.";
+    if (atcReason)
+      atcReason.textContent = rec
+        ? rec.reason
+        : "Add an arrival or a departure to give the tower a call to make.";
+
+    if (atcDoBtn) {
+      atcDoBtn.disabled = !rec || rec.rule === "hold" || rec.runwayId === null;
+    }
   }
 
   // --- sky map (top-down) ----------------------------------------------
@@ -381,19 +427,37 @@ if (planesLayer && board) {
     if (!paused) last = performance.now();
   });
 
+  // Act on the controller's recommended call.
+  atcDoBtn?.addEventListener("click", () => {
+    const rec = recommend(state);
+    if (!rec || rec.runwayId === null) return;
+    const r = clear(state, rec.planeId, rec.runwayId);
+    if (r.ok) {
+      state = r.state;
+      render();
+    }
+  });
+
   // --- view switch ------------------------------------------------------
   const towerBtn = $<HTMLButtonElement>("#view-tower-btn");
   const mapBtn = $<HTMLButtonElement>("#view-map-btn");
-  function showView(name: "airport" | "map"): void {
+  const atcBtn = $<HTMLButtonElement>("#view-atc-btn");
+  type ViewName = "airport" | "map" | "atc";
+  function showView(name: ViewName): void {
     if (airportView) airportView.hidden = name !== "airport";
     if (mapView) mapView.hidden = name !== "map";
+    if (atcView) atcView.hidden = name !== "atc";
     towerBtn?.setAttribute("aria-current", String(name === "airport"));
     mapBtn?.setAttribute("aria-current", String(name === "map"));
+    atcBtn?.setAttribute("aria-current", String(name === "atc"));
     if (name === "map") renderMap();
+    if (name === "atc") renderAtc();
   }
   towerBtn?.addEventListener("click", () => showView("airport"));
   mapBtn?.addEventListener("click", () => showView("map"));
+  atcBtn?.addEventListener("click", () => showView("atc"));
   $("#sky-to-map")?.addEventListener("click", () => showView("map"));
+  $("#tower-to-atc")?.addEventListener("click", () => showView("atc"));
 
   render();
   requestAnimationFrame(frame);

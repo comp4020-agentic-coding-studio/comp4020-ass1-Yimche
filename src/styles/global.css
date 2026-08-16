@@ -264,6 +264,39 @@ h1 {
   opacity: 1;
 }
 
+/* click-the-tower affordance: sits over the tower column, above the sky hit. */
+.tower-hit {
+  position: absolute;
+  inset: 0 auto 26% 0;
+  width: 16%;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0.5rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.tower-hint {
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 7px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.tower-hit:hover .tower-hint,
+.tower-hit:focus-visible .tower-hint {
+  opacity: 1;
+}
+
 /* ---- sky map (top-down) --------------------------------------------- */
 .map-wrap {
   margin: 1.5rem 0;
@@ -342,6 +375,121 @@ h1 {
   max-width: 42rem;
   color: var(--ink-soft);
   font-size: 0.85rem;
+}
+
+/* ---- inside ATC (decision screen) ----------------------------------- */
+.atc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+.atc-cab {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 240px;
+  background: var(--structure-2);
+}
+
+.cab-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.atc-screen {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 12px;
+  padding: clamp(1rem, 2.4vw, 1.6rem);
+  background: var(--panel);
+}
+
+.atc-screen[data-rule="emergency"] {
+  border-left-color: var(--danger);
+}
+
+.atc-screen[data-rule="hold"],
+.atc-screen[data-rule="idle"] {
+  border-left-color: var(--line);
+}
+
+.atc-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.atc-action {
+  margin: 0.2rem 0 0.4rem;
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.atc-screen[data-rule="emergency"] .atc-action {
+  color: var(--danger);
+}
+
+.atc-reason {
+  margin: 0 0 0.9rem;
+  color: var(--ink-soft);
+  max-width: 34rem;
+}
+
+.atc-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.2rem;
+  margin: 1rem 0;
+  padding: 0.8rem 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.atc-readout div {
+  display: flex;
+  flex-direction: column;
+}
+
+.atc-readout dt {
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.atc-readout dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.atc-h {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  margin: 0.6rem 0 0.4rem;
+}
+
+.atc-factors {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+}
+
+.atc-factors li {
+  margin: 0.3rem 0;
+}
+
+.atc-factors strong {
+  color: var(--ink);
 }
 
 /* ---- panel ---------------------------------------------------------- */
@@ -529,6 +677,14 @@ button:hover {
   .phase {
     margin-left: 0;
     width: 100%;
+  }
+
+  .atc {
+    grid-template-columns: 1fr;
+  }
+
+  .atc-cab {
+    min-height: 150px;
   }
 }
 
