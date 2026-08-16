@@ -57,7 +57,7 @@ describe("timeline page: where and how they relate", () => {
     expect(doc.querySelector(".connectors"), ".connectors overlay is missing").toBeTruthy();
   });
 
-  it("ships a node layer the birth-year medallions draw into", () => {
+  it("ships a node layer for the focus overlay to draw into", () => {
     expect(doc.querySelector(".nodes"), ".nodes layer is missing").toBeTruthy();
   });
 

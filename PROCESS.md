@@ -11,13 +11,15 @@ half thousand years, from 3500 BCE to now, and sixty civilisations run past as
 parallel bars, packed into labelled column-groups finer than their region, so
 their overlaps are the first thing you see. A sticky header row names each group
 as you scroll it into view. A fixed readout names the year and era as you
-descend. Behind the bars sits a
-faint world map, and focusing any civilisation (hover, keyboard focus, or opening
-its popup) lights its place on that map and branches from its birth-year node to
-the birth-year nodes of the civilisations it grew from, gave rise to, influenced,
-or fought, dimming the rest. Each node is a circular medallion carrying that
-civilisation's architecture. The page answers three questions at once: when,
-where, and how they relate.
+descend, staying out of sight until the first scroll gives it a year. Every bar
+carries an architecture emblem that rides the top of its visible span, so the
+icon stays in view however far a long-lived civilisation scrolls. Behind the
+bars sits a faint world map, and focusing any civilisation (hover, keyboard
+focus, or opening its popup) lights its place on that map, floats its name and
+dates under the cursor, and branches from its emblem to the emblems of the
+civilisations it grew from, gave rise to, influenced, or fought, dimming the
+rest. The page answers three questions at once: when, where, and how they
+relate.
 
 ## The moments that mattered
 
@@ -107,13 +109,31 @@ snapping and a jump rail, its contract committed red first.
 [`413dbeb`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/413dbeb),
 [`8429083`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/8429083)
 I confirmed both against the rendered page: 1920 carries no horizontal scrollbar
-and the focus chip reads, and 390 snaps to group boundaries while the vertical
+and the focus label reads, and 390 snaps to group boundaries while the vertical
 scroll still drives the year.
+
+**Polish driven by watching the real page.** Looking at the built page turned up
+five small failures the model tests could never catch, so I fixed them against
+the render, not my mental picture of it. The sticky group header sat on top of
+the first bars and a hovered bar climbed over the header, so I offset every
+coordinate layer below a header band and lifted the legend above a hovered bar.
+[`9f2b395`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/9f2b395)
+The architecture emblems had only shown on focus and scrolled away with their
+bars, so I made every emblem always-on and sticky to the top of its visible
+span, re-anchoring the relation branches to those emblems so the lines join what
+you can actually see.
+[`21ac092`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/21ac092)
+Then the focus label moved out of the cramped column to float under the cursor,
+and the year readout was held back until the first scroll gives it a year to
+show.
+[`6851e42`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/6851e42)
+Each one was a thing I could only see by scrolling and hovering the page myself.
 
 ## Before you ship
 
 `pnpm check` is green (66 tests) and `pnpm check:evidence` resolves every
 citation above. The deployed page is verified live at 1920×1080 and 390×844, both
-in full: desktop fits every lane with no horizontal scrollbar and reveals the
-focus chip, the phone pages across the groups from the rail, and the focus
-highlight, the relation links, and keyboard open-and-close all hold.
+in full: desktop fits every lane with no horizontal scrollbar and floats the
+focus label under the cursor, the phone pages across the groups from the rail,
+and the always-on emblems, the relation links, and keyboard open-and-close all
+hold.

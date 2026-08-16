@@ -50,21 +50,23 @@ back it with a `spec/*.test.ts`. If you can't write the test, the interaction
 isn't defined yet.
 
 - **Interaction:** Scrolling down the ~5,500-year axis drives a live year/era
-  readout, past sixty civilisations packed into labelled, region-tinted
-  column-groups; focusing a civilisation (hover, keyboard focus, or opening its
-  popup) lights its place on the faint world map and branches from its
-  birth-year node to the birth-year nodes of the civilisations it relates to,
-  each node a circular medallion carrying its group's architecture, dimming the
+  readout (hidden until the first scroll gives it a year), past sixty
+  civilisations packed into labelled, region-tinted column-groups. Every bar
+  carries an always-on architecture icon that rides the top of its visible span,
+  so the emblem stays in view however far the bar scrolls; focusing a
+  civilisation (hover, keyboard focus, or opening its popup) lights its place on
+  the faint world map, floats its name and dates under the cursor, and branches
+  from its icon to the icons of the civilisations it relates to, dimming the
   rest.
 - **Fit to the marked viewports.** Sixty lanes don't fit one frame the same way
   at both sizes, so the layout splits by viewport (verified against the rendered
   page, not a sensor): desktop fits every lane to the width and moves the bar
-  label to a chip revealed on focus, so there is no horizontal scroll at 1920;
+  label to a tooltip that follows the cursor, so there is no horizontal scroll at 1920;
   the phone keeps the wide canvas and pages across the groups, snapping to group
   boundaries with a fixed jump rail. The rail's contract is
   `spec/navigation.test.ts`; the fit itself is CSS, checked by screenshot.
 - **Testable claim:** The built page renders one focusable bar and one map pin
-  per civilisation, a connector overlay, a birth-year node layer, an
+  per civilisation, a connector overlay, a node layer, an
   architecture icon per civilisation, a popup relations section, and a group rail
   with one control per group band; the pure model packs the civilisations into
   disjoint group bands that tile the lanes, projects every civilisation inside
