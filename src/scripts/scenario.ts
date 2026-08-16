@@ -55,9 +55,84 @@ export const PLANES: readonly Plane[] = [
   { id: "p3", name: "Plane 3", kind: "departure" },
 ];
 
-// The scripted choreography, authored as keyframes. (Authored in the next
-// commit; the contract test is red until it is.)
-export const SCENARIO: readonly Beat[] = [];
+// The scripted choreography, authored as keyframes. Positions are scene
+// percentages: the big departure waits at the apron far left, arrivals hold
+// high over the field, the single runway sits low and centre. The order of the
+// beats is the lesson.
+export const SCENARIO: readonly Beat[] = [
+  {
+    callout: "Two arrivals are holding overhead. Plane 3 waits at the gate to depart.",
+    directing: null,
+    poses: {
+      p1: { x: 40, y: 16, phase: "holding" },
+      p2: { x: 58, y: 12, phase: "holding" },
+      p3: { x: 13, y: 69, phase: "gate" },
+    },
+  },
+  {
+    callout: "Plane 1 is lowest on fuel, so it is cleared to land first on runway 27.",
+    directing: "p1",
+    poses: {
+      p1: { x: 43, y: 46, phase: "approach" },
+      p2: { x: 56, y: 15, phase: "holding" },
+      p3: { x: 13, y: 69, phase: "gate" },
+    },
+  },
+  {
+    callout: "Plane 1 is on runway 27. One runway serves one plane, so the rest keep circling.",
+    directing: "p1",
+    poses: {
+      p1: { x: 46, y: 83, phase: "landing" },
+      p2: { x: 60, y: 13, phase: "holding" },
+      p3: { x: 13, y: 69, phase: "gate" },
+    },
+  },
+  {
+    callout: "Plane 1 clears the runway and taxis in. Runway 27 is free again.",
+    directing: null,
+    poses: {
+      p1: { x: 32, y: 76, phase: "taxi" },
+      p2: { x: 57, y: 16, phase: "holding" },
+      p3: { x: 13, y: 69, phase: "gate" },
+    },
+  },
+  {
+    callout: "With the runway clear, Plane 2 is cleared to land on runway 27.",
+    directing: "p2",
+    poses: {
+      p1: { x: 20, y: 70, phase: "gate" },
+      p2: { x: 43, y: 46, phase: "approach" },
+      p3: { x: 13, y: 69, phase: "gate" },
+    },
+  },
+  {
+    callout: "Plane 2 touches down. Arrivals on fuel always come before a waiting departure.",
+    directing: "p2",
+    poses: {
+      p1: { x: 20, y: 70, phase: "gate" },
+      p2: { x: 46, y: 83, phase: "landing" },
+      p3: { x: 13, y: 69, phase: "gate" },
+    },
+  },
+  {
+    callout: "No arrivals are left holding, so Plane 3 is cleared to take off from runway 27.",
+    directing: "p3",
+    poses: {
+      p1: { x: 20, y: 70, phase: "gate" },
+      p2: { x: 32, y: 76, phase: "taxi" },
+      p3: { x: 46, y: 83, phase: "departing" },
+    },
+  },
+  {
+    callout: "Plane 3 is airborne and clear. Fresh traffic checks in and the cycle begins again.",
+    directing: null,
+    poses: {
+      p1: { x: 20, y: 70, phase: "gate" },
+      p2: { x: 28, y: 73, phase: "gate" },
+      p3: { x: 96, y: -12, phase: "gone" },
+    },
+  },
+];
 
 // --- derivation the view draws ------------------------------------------
 
