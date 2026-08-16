@@ -211,34 +211,6 @@ body {
   fill: color-mix(in srgb, var(--ink) 12%, transparent);
 }
 
-.map-pin circle {
-  fill: color-mix(in srgb, var(--ink) 22%, transparent);
-  transition: fill 0.15s ease;
-}
-
-.map-pin-label {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 3px;
-  fill: var(--ink);
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-/* lit by the focus highlight (states added by main.ts) */
-.map-pin.related circle {
-  fill: color-mix(in srgb, var(--accent) 55%, transparent);
-}
-
-.map-pin.active circle {
-  fill: var(--accent);
-  stroke: var(--paper);
-  stroke-width: 0.7;
-}
-
-.map-pin.active .map-pin-label {
-  opacity: 1;
-}
-
 /* ------- the timeline -------
    Fit the whole lane set to the viewport width so all groups are visible in
    one frame with no horizontal scroll (see the 640px block for the mobile
@@ -1013,8 +985,6 @@ body {
   .outro,
   .hero-hint,
   .hud-progress-fill,
-  .map-pin circle,
-  .map-pin-label,
   .civ-node,
   .group-head {
     transition: none;

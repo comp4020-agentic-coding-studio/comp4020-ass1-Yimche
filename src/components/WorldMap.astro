@@ -2,10 +2,7 @@
 // The faint world-map backdrop. The land is hand-authored as coarse continent
 // outlines in real longitude/latitude, then run through the same project() the
 // tests use, so it is CC0 by construction (no external map, no CDN) and its
-// projection is exactly the one the civilisation pins are placed with. One pin
-// per civilisation sits at its heartland; both land and pins share this SVG's
-// viewBox, so they stay aligned at any viewport aspect.
-import { CIVILISATIONS } from "../data/civilisations";
+// projection is exactly the one the civilisation coordinates are placed with.
 import { project } from "../scripts/geo";
 
 const W = 360;
@@ -59,36 +56,12 @@ const ring = (poly: [number, number][]): string =>
     })
     .join(" ");
 
-const slug = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
-const pins = CIVILISATIONS.map((c) => ({
-  id: c.id,
-  region: slug(c.region),
-  name: c.name,
-  ...project(c.lat, c.lon, W, H),
-}));
 ---
 
 <div class="worldmap" aria-hidden="true">
   <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet">
     <g class="worldmap-land">
       {LAND.map((poly) => <polygon points={ring(poly)} />)}
-    </g>
-    <g class="worldmap-pins">
-      {
-        pins.map((p) => (
-          <g class="map-pin" data-civ={p.id} data-region={p.region}>
-            <circle cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="1.6" />
-            <text class="map-pin-label" x={(p.x + 3).toFixed(1)} y={(p.y + 1).toFixed(1)}>
-              {p.name}
-            </text>
-          </g>
-        ))
-      }
     </g>
   </svg>
 </div>

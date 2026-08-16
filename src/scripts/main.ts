@@ -99,7 +99,6 @@ if (reduceMotion || !("IntersectionObserver" in window)) {
 const connectors = document.querySelector<SVGSVGElement>(".connectors");
 const nodesLayer = document.querySelector<HTMLElement>(".nodes");
 const civBars = Array.from(document.querySelectorAll<HTMLElement>(".civ[data-civ]"));
-const mapPins = Array.from(document.querySelectorAll<SVGElement>(".map-pin[data-civ]"));
 const barById = new Map(civBars.map((b) => [b.dataset.civ ?? "", b]));
 const groupHeads = Array.from(document.querySelectorAll<HTMLElement>(".group-head"));
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -264,11 +263,6 @@ const light = (id: string): void => {
     b.classList.toggle("related", related.has(bid));
     b.classList.toggle("dimmed", bid !== id && !related.has(bid));
   }
-  for (const p of mapPins) {
-    const pid = p.getAttribute("data-civ") ?? "";
-    p.classList.toggle("active", pid === id);
-    p.classList.toggle("related", related.has(pid));
-  }
   // expand the (often truncated) column name of the group this civ belongs to
   const activeGroup = barById.get(id)?.dataset.group ?? "";
   for (const h of groupHeads) h.classList.toggle("is-active", h.id === `group-${activeGroup}`);
@@ -278,7 +272,6 @@ const light = (id: string): void => {
 
 const clearLight = (): void => {
   for (const b of civBars) b.classList.remove("active", "related", "dimmed");
-  for (const p of mapPins) p.classList.remove("active", "related");
   for (const h of groupHeads) h.classList.remove("is-active");
   clearConnectors();
   nodesLayer?.replaceChildren();
