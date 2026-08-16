@@ -14,7 +14,10 @@ rather than to one output, it lands here as a new rule, not in a retry.
 An **interactive explainer**: one strong idea, one dataset or mechanic, and
 nothing else. Static, client-side, deployed to GitHub Pages.
 
-- **Topic:** _<one sentence — the thing more people should understand, and why it's worth it>_
+- **Topic:** How did we get here? The great civilisations did not run one after
+  another; they overlapped in time, rose in different places, and grew out of
+  one another. Seeing *when*, *where*, and *how they relate* together reframes
+  history as a crowded, parallel, connected story rather than a relay.
 - **The visitor does something** that changes what they see. It is not a page
   you only read.
 
@@ -46,8 +49,15 @@ Name the one thing the visitor does, plainly enough to write a test for it, and
 back it with a `spec/*.test.ts`. If you can't write the test, the interaction
 isn't defined yet.
 
-- **Interaction:** _<e.g. "dragging the slider from 0→100 updates the readout and the bar's height">_
-- **Testable claim:** _<the assertion your spec test makes>_
+- **Interaction:** Scrolling down the ~5,500-year axis drives a live year/era
+  readout; focusing a civilisation (hover, keyboard focus, or opening its popup)
+  lights its place on the faint world map and draws connectors to the
+  civilisations it relates to, dimming the rest.
+- **Testable claim:** The built page renders one focusable bar and one map pin
+  per civilisation, a connector overlay, and a popup relations section; the pure
+  model projects every civilisation inside the map bounds and resolves each
+  one's relations both ways (`spec/interaction.test.ts`, `spec/geo.test.ts`,
+  `spec/timeline.test.ts`).
 
 Keep this line and its test in sync with what the page actually does. A passing
 test that describes an old behaviour is a lie in the harness.
