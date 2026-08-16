@@ -56,13 +56,21 @@ isn't defined yet.
   birth-year node to the birth-year nodes of the civilisations it relates to,
   each node a circular medallion carrying its group's architecture, dimming the
   rest.
+- **Fit to the marked viewports.** Sixty lanes don't fit one frame the same way
+  at both sizes, so the layout splits by viewport (verified against the rendered
+  page, not a sensor): desktop fits every lane to the width and moves the bar
+  label to a chip revealed on focus, so there is no horizontal scroll at 1920;
+  the phone keeps the wide canvas and pages across the groups, snapping to group
+  boundaries with a fixed jump rail. The rail's contract is
+  `spec/navigation.test.ts`; the fit itself is CSS, checked by screenshot.
 - **Testable claim:** The built page renders one focusable bar and one map pin
   per civilisation, a connector overlay, a birth-year node layer, an
-  architecture icon per civilisation, and a popup relations section; the pure
-  model packs the civilisations into disjoint group bands that tile the lanes,
-  projects every civilisation inside the map bounds, and resolves each one's
-  relations both ways (`spec/interaction.test.ts`, `spec/geo.test.ts`,
-  `spec/timeline.test.ts`, `spec/grouping.test.ts`).
+  architecture icon per civilisation, a popup relations section, and a group rail
+  with one control per group band; the pure model packs the civilisations into
+  disjoint group bands that tile the lanes, projects every civilisation inside
+  the map bounds, and resolves each one's relations both ways
+  (`spec/interaction.test.ts`, `spec/geo.test.ts`, `spec/timeline.test.ts`,
+  `spec/grouping.test.ts`, `spec/navigation.test.ts`).
 
 Keep this line and its test in sync with what the page actually does. A passing
 test that describes an old behaviour is a lie in the harness.
@@ -178,3 +186,10 @@ time. Seed rules:
   contracts that already generalised. The big data commit then stays green
   because nothing about its shape is new, and the geography/region tests never
   move.
+- **Measure the rendered page before choosing a fit, and split by viewport.**
+  "Make it fit" is not one problem at 1920 and 390. Measure first (32 lanes fit
+  1920 if the labels move to focus; 390 can't, but a 1-3 lane group fits a phone),
+  then let each viewport have its own answer rather than forcing one compromise on
+  both. Fit is CSS with no pure-model sensor, so the real check is a screenshot at
+  each marked size, not a passing unit test; only the navigation contract the fit
+  introduces (the rail) is unit-testable.

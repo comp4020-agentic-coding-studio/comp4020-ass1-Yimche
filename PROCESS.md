@@ -95,9 +95,25 @@ The medallions became group-keyed off the same field,
 so growing the set from twenty-two to sixty civilisations was then a pure data
 commit against contracts that already generalised, and it landed green.
 [`bb61c25`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/bb61c25)
+Sixty lanes then overflowed the two viewports the brief actually marks, so I
+measured the real page before choosing: at 1920 all thirty-two lanes fit if the
+inline labels give way, but at 390 they never will, though a single one-to-three
+lane group fits a phone comfortably. That split the fix by viewport rather than
+forcing one compromise on both. Desktop fits to width and moves the label to a
+chip revealed on focus,
+[`a538c94`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/a538c94)
+while the phone keeps the wide canvas and pages across the groups with gentle
+snapping and a jump rail, its contract committed red first.
+[`413dbeb`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/413dbeb),
+[`8429083`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/8429083)
+I confirmed both against the rendered page: 1920 carries no horizontal scrollbar
+and the focus chip reads, and 390 snaps to group boundaries while the vertical
+scroll still drives the year.
 
 ## Before you ship
 
-`pnpm check` is green (63 tests) and `pnpm check:evidence` resolves every
-citation above. The deployed page is verified live at 1920×1080 and 390×844,
-including the focus highlight, the relation links, and keyboard open-and-close.
+`pnpm check` is green (66 tests) and `pnpm check:evidence` resolves every
+citation above. The deployed page is verified live at 1920×1080 and 390×844, both
+in full: desktop fits every lane with no horizontal scrollbar and reveals the
+focus chip, the phone pages across the groups from the rail, and the focus
+highlight, the relation links, and keyboard open-and-close all hold.
