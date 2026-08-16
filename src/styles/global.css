@@ -546,15 +546,17 @@ body {
 }
 
 /* focus-highlight states (added by main.ts). Defined after .in-view so the
-   dimming wins over the reveal opacity. */
+   dimming wins over the reveal opacity. The ring marks the civilisation you are
+   on; the ones it links to are simply the bars left undimmed around it. */
 .civ.active {
   filter: brightness(1.1);
-  box-shadow: 0 8px 22px rgb(0 0 0 / 38%);
+  box-shadow:
+    0 0 0 3px var(--hud-bg),
+    0 8px 22px rgb(0 0 0 / 38%);
   z-index: 2;
 }
 
 .civ.related {
-  box-shadow: 0 0 0 3px var(--hud-bg);
   z-index: 1;
 }
 
