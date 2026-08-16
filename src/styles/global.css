@@ -70,7 +70,10 @@ body {
 /* ------- heads-up display: the readout the scroll drives ------- */
 .hud {
   position: fixed;
-  top: 18px;
+
+  /* sits below the sticky group-column band so the readout never covers the
+     group names once the timeline is in view */
+  top: calc(var(--head-h) + 14px);
   left: 18px;
   z-index: 30;
   padding: 14px 18px;
@@ -401,6 +404,23 @@ body {
 
 .group-head[data-region="andes"] {
   --civ-color: var(--r-andes);
+}
+
+/* while a civilisation in this group is focused, main.ts flags its head so the
+   name shows in full, on a chip lifted above the neighbouring columns */
+.group-head.is-active {
+  z-index: 9;
+  overflow: visible;
+}
+
+.group-head.is-active .group-head-name {
+  overflow: visible;
+  padding: 3px 8px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 18%);
+  color: color-mix(in srgb, var(--civ-color) 82%, var(--ink));
+  text-overflow: clip;
 }
 
 /* group rail: a jump-to-group control. Hidden where every group already fits
@@ -958,7 +978,7 @@ body {
   }
 
   .hud {
-    top: 12px;
+    top: calc(var(--head-h) + 10px);
     left: 12px;
     padding: 10px 14px;
     min-width: 138px;
