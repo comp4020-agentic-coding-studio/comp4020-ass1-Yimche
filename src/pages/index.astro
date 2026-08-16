@@ -125,8 +125,10 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
               yearToY(c.end) - yearToY(c.start)
             }px`}
           >
-            <span class="civ-name">{c.name}</span>
-            <span class="civ-dates">{range(c.start, c.end)}</span>
+            <span class="civ-label">
+              <span class="civ-name">{c.name}</span>
+              <span class="civ-dates">{range(c.start, c.end)}</span>
+            </span>
           </button>
         ))
       }
