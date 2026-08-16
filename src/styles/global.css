@@ -289,6 +289,10 @@ body {
 .marks {
   position: absolute;
   inset: var(--head-h) 0 0;
+
+  /* above the era-band name so a year label crossing the sticky era text reads
+     over it rather than tangling with the vertical letters */
+  z-index: 1;
 }
 
 .era-mark {
@@ -312,6 +316,13 @@ body {
   position: absolute;
   top: 4px;
   left: 8px;
+
+  /* a paper chip so the year pops slightly off the page and stays readable when
+     it passes over the sticky vertical era name in the gutter */
+  padding: 1px 7px;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--paper) 90%, transparent);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 14%);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.8rem;
   font-weight: 700;
@@ -683,17 +694,20 @@ body {
   padding: 40px 24px 64px;
   text-align: center;
   color: var(--hud-ink);
-  background: linear-gradient(to bottom, #8f9ea9 0%, #4a5560 100%);
 
-  /* opacity-only reveal: a downward translate here would extend the scrollable
-     area, so the page height would shrink 16px the first time it reveals and
-     jolt the scroll at the very bottom. Opacity does not affect layout. */
-  opacity: 0;
-  transition: opacity 0.6s ease;
+  /* the ground is a seamless continuation of the timeline's cool bottom, so it
+     is painted from the start: fading the whole section in made a dark block
+     appear against the paper. Only the text below fades in on scroll. */
+  background: linear-gradient(to bottom, #8f9ea9 0%, #4a5560 100%);
 }
 
-.outro.in-view {
-  opacity: 1;
+/* reveal only the closing text (opacity alone, no transform, so the scrollable
+   area at the very bottom never changes and the scroll cannot jolt) */
+.outro-year,
+.outro-title,
+.outro-lead {
+  opacity: 0;
+  transition: opacity 0.6s ease;
 }
 
 .outro-year {
@@ -715,6 +729,12 @@ body {
   margin: 0;
   max-width: 48ch;
   color: color-mix(in srgb, var(--hud-ink) 78%, transparent);
+}
+
+.outro.in-view .outro-year,
+.outro.in-view .outro-title,
+.outro.in-view .outro-lead {
+  opacity: 1;
 }
 
 /* ------- detail popup ------- */
