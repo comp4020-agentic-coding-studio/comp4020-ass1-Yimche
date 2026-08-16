@@ -682,16 +682,16 @@ body {
   text-align: center;
   color: var(--hud-ink);
   background: linear-gradient(to bottom, #8f9ea9 0%, #4a5560 100%);
+
+  /* opacity-only reveal: a downward translate here would extend the scrollable
+     area, so the page height would shrink 16px the first time it reveals and
+     jolt the scroll at the very bottom. Opacity does not affect layout. */
   opacity: 0;
-  transform: translateY(16px);
-  transition:
-    opacity 0.6s ease,
-    transform 0.6s ease;
+  transition: opacity 0.6s ease;
 }
 
 .outro.in-view {
   opacity: 1;
-  transform: none;
 }
 
 .outro-year {
