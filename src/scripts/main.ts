@@ -213,15 +213,19 @@ const drawConnectors = (id: string): void => {
     const other = barById.get(otherId);
     if (!other) return;
     const b = origin(other);
-    const [p, rawQ] = pointToOther ? [a, b] : [b, a];
-    // the branch approaches its target horizontally, so for the arrowed kinds
-    // stop it just short of the target emblem: the arrowhead then sits beside
-    // the emblem pointing into it, instead of hiding under the 30px icon.
-    const pull = 18;
+    const [rawP, rawQ] = pointToOther ? [a, b] : [b, a];
+    // both branches approach their ends horizontally, so pull each end back
+    // along the x it leaves on: the line then starts and stops beside the
+    // emblems instead of running across them. The arrowed end gets the larger
+    // gap so the arrowhead sits just outside the target's 30px icon.
+    const dir = rawQ.x >= rawP.x ? 1 : -1;
+    const iconGap = 16;
+    const arrowGap = 18;
+    const p = { x: rawP.x + dir * iconGap, y: rawP.y };
     const q =
       kind === "rival"
-        ? rawQ
-        : { x: rawQ.x + (p.x < rawQ.x ? -pull : pull), y: rawQ.y };
+        ? { x: rawQ.x - dir * iconGap, y: rawQ.y }
+        : { x: rawQ.x - dir * arrowGap, y: rawQ.y };
     const path = document.createElementNS(SVG_NS, "path");
     path.setAttribute("d", connectorPath(p, q));
     path.setAttribute("class", `connector connector-${kind}`);

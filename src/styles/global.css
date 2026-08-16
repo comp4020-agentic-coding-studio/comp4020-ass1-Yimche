@@ -463,7 +463,7 @@ body {
 /* transmission of ideas or trade: a dashed line with an open arrowhead pointing
    to the side it influenced */
 .connector-influence {
-  stroke: var(--accent);
+  stroke: #1c6dd0;
   stroke-dasharray: 7 6;
   marker-end: url("#mk-influence");
 }
@@ -491,7 +491,7 @@ body {
 
 .mk-influence {
   fill: none;
-  stroke: var(--accent);
+  stroke: #1c6dd0;
   stroke-width: 1.6;
   stroke-linecap: round;
   stroke-linejoin: round;
