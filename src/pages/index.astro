@@ -2,6 +2,7 @@
 import Layout from "../layouts/Layout.astro";
 import WorldMap from "../components/WorldMap.astro";
 import ArchIcons from "../components/ArchIcons.astro";
+import { iconFor } from "../data/civilisations";
 import {
   eraBands,
   eraMarks,
@@ -126,6 +127,9 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
               yearToY(c.end) - yearToY(c.start)
             }px`}
           >
+            <span class="civ-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><use href={`#arch-${iconFor(c)}`} /></svg>
+            </span>
             <span class="civ-label">
               <span class="civ-name">{c.name}</span>
               <span class="civ-dates">{range(c.start, c.end)}</span>

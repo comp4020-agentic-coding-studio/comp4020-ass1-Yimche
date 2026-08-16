@@ -2,7 +2,7 @@
 // timeline.ts as a pure model; the civilisation facts live in the dataset. This
 // file turns scroll position into the live year readout, reveals bars as they
 // enter view, and fills the detail popup on demand.
-import { CIVILISATIONS, iconFor, type RelationKind } from "../data/civilisations";
+import { CIVILISATIONS, type RelationKind } from "../data/civilisations";
 import { connectorPath, relationsOf, type ResolvedRelation } from "./geo";
 import { eraFor, formatYear, TIMELINE_HEIGHT, yToYear } from "./timeline";
 
@@ -90,9 +90,6 @@ const nodesLayer = document.querySelector<HTMLElement>(".nodes");
 const civBars = Array.from(document.querySelectorAll<HTMLElement>(".civ[data-civ]"));
 const mapPins = Array.from(document.querySelectorAll<SVGElement>(".map-pin[data-civ]"));
 const barById = new Map(civBars.map((b) => [b.dataset.civ ?? "", b]));
-// Each medallion carries its group's architecture icon (or a per-civ override),
-// so civs in the same group share an emblem; see iconFor in the data module.
-const iconById = new Map(CIVILISATIONS.map((c) => [c.id, iconFor(c)]));
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 let shownId: string | null = null; // the civ currently lit
@@ -109,7 +106,6 @@ const relatedKinds = (id: string): Map<string, RelationKind> => {
 const drawConnectors = (id: string, related: Map<string, RelationKind>): void => {
   if (!connectors || !timelineEl) return;
   connectors.replaceChildren();
-  nodesLayer?.replaceChildren();
   const from = barById.get(id);
   if (!from) return;
   const tl = timelineEl.getBoundingClientRect();
@@ -117,24 +113,14 @@ const drawConnectors = (id: string, related: Map<string, RelationKind>): void =>
   // box is taller than TIMELINE_HEIGHT); origins are measured from tl.top, so a
   // 1:1 viewBox keeps the branches aligned with the bars whatever the band.
   connectors.setAttribute("viewBox", `0 0 ${tl.width} ${tl.height}`);
-  // A bar spans its whole life, so its centre is often scrolled off-screen.
-  // Anchor branches to the birth point instead: horizontally centred, at the
-  // bar's start (top) edge. Branches then read as a lineage between births.
+  // Every bar carries an always-on icon that rides the top of its visible span,
+  // so anchor branches to those icons: the lines then join the emblems you can
+  // actually see rather than birth points scrolled off the top. This is redrawn
+  // on scroll (below) so the branches track the icons as they ride.
   const origin = (el: HTMLElement): { x: number; y: number } => {
-    const r = el.getBoundingClientRect();
-    return { x: r.left - tl.left + r.width / 2, y: r.top - tl.top };
-  };
-  // a circular medallion carrying the civ's architecture, sat on its birth point
-  const medallion = (el: HTMLElement, civId: string, state: string): void => {
-    if (!nodesLayer) return;
-    const p = origin(el);
-    const node = document.createElement("div");
-    node.className = `civ-node civ-node-${state}`;
-    node.style.left = `${p.x}px`;
-    node.style.top = `${p.y}px`;
-    const icon = iconById.get(civId) ?? civId;
-    node.innerHTML = `<svg viewBox="0 0 24 24"><use href="#arch-${icon}"></use></svg>`;
-    nodesLayer.appendChild(node);
+    const icon = el.querySelector<HTMLElement>(".civ-icon");
+    const r = (icon ?? el).getBoundingClientRect();
+    return { x: r.left - tl.left + r.width / 2, y: r.top - tl.top + r.height / 2 };
   };
   const a = origin(from);
   for (const [rid, kind] of related) {
@@ -144,9 +130,7 @@ const drawConnectors = (id: string, related: Map<string, RelationKind>): void =>
     path.setAttribute("d", connectorPath(a, origin(to)));
     path.setAttribute("class", `connector connector-${kind}`);
     connectors.appendChild(path);
-    medallion(to, rid, kind);
   }
-  medallion(from, id, "active"); // the focused civ's node sits on top
 };
 
 const light = (id: string): void => {
@@ -194,6 +178,22 @@ for (const b of civBars) {
 window.addEventListener("resize", () => {
   if (shownId) drawConnectors(shownId, relatedKinds(shownId));
 });
+
+// the branches anchor to the sticky icons, which move as you scroll, so redraw
+// them each frame while a civilisation is lit (throttled to one draw per frame)
+let connTick = false;
+window.addEventListener(
+  "scroll",
+  () => {
+    if (!shownId || connTick) return;
+    connTick = true;
+    requestAnimationFrame(() => {
+      if (shownId) drawConnectors(shownId, relatedKinds(shownId));
+      connTick = false;
+    });
+  },
+  { passive: true },
+);
 
 // --- group rail: jump the horizontal scroll to a group ------------------
 // Where the lanes overflow the width (a phone), each rail control scrolls its
