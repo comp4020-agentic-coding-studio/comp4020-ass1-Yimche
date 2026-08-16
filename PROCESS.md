@@ -1,85 +1,58 @@
 # Process overview
 
-<!-- TEMPLATE: this file is a shape to fill in, not a form. Replace everything
-     in it with your own overview, and delete this comment — `pnpm
-     check:evidence` will remind you if it's still here. -->
-
-A reading-guide to how the work came together --- a map to your process, not an
-essay about it. Markers read this file and follow its citations; they don't
-trawl the repo for evidence you didn't point at, so if a moment mattered, cite
-it.
-
-This file is the shape; the course site's
-[assessment page](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/assessment/#what-you-submit)
-is the requirement, and its
-[word counts](https://comp.anu.edu.au/courses/comp4020-agentic-coding-studio/topics/assessment/#word-counts)
-cover every deliverable.
+A reading-guide to how this prototype came together, and where the judgement
+sits. The links go straight to the commits that carry the evidence.
 
 ## What I built
 
-One paragraph: the thing, and the idea behind it.
+An interactive explainer of how air traffic control sequences a scarce runway:
+one runway serves one plane at a time, holding arrivals burn fuel, and that
+single bottleneck is the whole decision. The visitor is the controller, clearing
+planes onto runways and watching who has to keep circling. It has three views of
+one simulation: a side-on tower, a top-down sky map, and an inside-ATC screen
+that explains each call.
 
 ## The moments that mattered
 
-Three or four for an assignment; fewer is fine for a weekly prototype. Keep the
-list short so each moment has room to do all four jobs:
+**Scoping three views into one tested model.** The brief I set myself asked for
+three separate views ("a 2D side-on view... a map... the inside of the ATC").
+The obvious move was to build all three at once. Instead I pulled the mechanics
+into a pure module with no DOM, wrote the core-interaction contract as failing
+tests first, then made them pass — single-runway occupancy, separation
+rejection, monotonic fuel burn, emergency at empty. Writing the contract before
+the code is what told me the model was right independently of any view; the three
+views then became three drawings of the same tested state.
+[`eedd1d6...02c8617`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/compare/eedd1d6...02c8617)
 
-1. **what happened** --- the problem, or the thing the agent got wrong
-2. **what you did instead of the obvious thing** --- the call you made, and why
-   it beat the obvious one
-3. **how you knew it was right** --- the check you ran, the viewport you looked
-   at, what you read before accepting the diff
-4. **the citation** --- a commit or commit range, a `CLAUDE.md` change, a check
-   that went from red to green, a prompt paired with the commit it produced
+**A contradiction in the harness, fixed in the harness.** My `AGENTS.md` said
+"never commit a red state", but the course wants the red-to-green history as
+process evidence, and I genuinely needed to commit a failing spec test first.
+Re-prompting around it would have hidden the tension rather than resolving it. I
+added a documented carve-out instead — test-first reds may be committed, nothing
+else red may — so the rule and the evidence stopped fighting. Landing the
+correction in the operating rules, not in another prompt, is what made it stick.
+[`aff9bff`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/aff9bff)
 
-Jobs 2 and 3 are the ones the repo can't tell a reader on its own, so they're
-where the marks are. The strongest moments are the ones where a correction
-landed in the **harness** rather than in another prompt --- a rule added to
-`CLAUDE.md`, a check wired up, an attempt thrown away: re-prompting until it
-passes is the routine case, and changing what the agent works against is the
-skilled one.
+**Wiring the sensor the roster was missing.** `pnpm check` runs typecheck, build,
+oxlint, stylelint and vitest, but nothing watched accessibility. Rather than
+eyeball it, I added a JSDOM contract against the built page: every control is a
+real `<button>` with an accessible name, and no clicks are wired onto
+non-interactive elements. That check now fails the build if a later view reaches
+for a clickable `<div>` — which is exactly what kept the sky and tower click
+targets as real buttons with `aria-label`s.
+[`7d3acd4`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/7d3acd4)
 
-Cite each moment as a link whose text is the commit hash or range and whose
-target is this repo's commit or compare URL, so a reader clicks straight to the
-evidence:
-
-- one commit: [`a1b2c3d`](https://github.com/YOUR-ORG/YOUR-REPO/commit/a1b2c3d)
-- a range:
-  [`a1b2c3d...e4f5a6b`](https://github.com/YOUR-ORG/YOUR-REPO/compare/a1b2c3d...e4f5a6b)
-
-To pair a prompt with the commit it produced, quote the prompt (curated, not a
-full transcript) next to the citation:
-
-> the prompt, verbatim
-
-Screenshots are welcome where one carries the verification better than a
-sentence does. Commit the file to this repo and link it with a **relative**
-path, which is what makes it render on GitHub: `![alt text](docs/before.png)`.
-Images don't count towards the word count and don't replace the citation.
-
-### A worked moment, for shape
-
-Delete this section along with the rest of the boilerplate --- it's here to show
-the four jobs in one paragraph, not to be imitated in content.
-
-> The date formatter kept coming back with `toLocaleDateString()` and no locale
-> argument, so the same build rendered differently on my machine and in CI. I'd
-> already re-prompted it twice, which fixed the line but not the habit, so the
-> third time I put the rule in `CLAUDE.md` instead
-> ([`3f9ac21`](https://github.com/YOUR-ORG/YOUR-REPO/commit/3f9ac21)) and added
-> a spec test that fails on a bare `toLocaleDateString`. That's what told me it
-> had actually taken: the test went red against the old code and green against
-> the new, and the next two features it wrote passed it without prompting
-> ([`3f9ac21...b7e0d14`](https://github.com/YOUR-ORG/YOUR-REPO/compare/3f9ac21...b7e0d14)).
+**The decision as a pure function, verified against the render.** The point of
+the explainer is *who goes next and why*, so I made that a pure `recommend()` —
+emergency, then lowest fuel, then departures — with five tests, and the
+inside-ATC view simply reads it. The map and ATC views therefore touch the model
+not at all; they are redraws. I checked the whole loop in headless Chromium over
+CDP rather than trusting my mental model: clearing the recommended plane really
+did lock the runway and advance the call to the next-lowest tank.
+[`53170ff`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/53170ff),
+[`90a8882...a2d8aa8`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/compare/90a8882...a2d8aa8)
 
 ## Before you ship
 
-`pnpm check:evidence` verifies your citations resolve to real commits, that the
-current reflection entry is in `reflections/`, and that your `CLAUDE.md` is
-there --- before a marker ever opens the file. It checks that your map is
-traceable, not that it is good: the marker judges whether your small,
-deliberately chosen set of moments shows real judgement and reflection. A green
-check is not a substitute for that curation.
-
-Images are deliberately not checked, because whether one renders is visible the
-moment you look. Open this file on GitHub and look at it before you ship.
+`pnpm check` is green (33 tests) and `pnpm check:evidence` resolves every
+citation above. The deployed page is verified live at 1920×1080 and 390×844.
