@@ -3,6 +3,10 @@
 // existed. Years are signed integers, negative for BCE, and year zero is never
 // used (there is no year 0 between 1 BCE and 1 CE). Dates are rounded to the
 // conventional textbook figures a general reader would recognise.
+//
+// Each civilisation also carries where its heartland sat (lat/lon, for the world
+// map) and how it relates to others (relations, for the branching view). Dates
+// and places are approximate on purpose: this is an explainer, not an atlas.
 
 export const REGIONS = [
   "Mesopotamia",
@@ -22,6 +26,19 @@ export interface CivEvent {
   text: string;
 }
 
+// The kinds of tie one civilisation can have to another. "successor" is a later
+// power rising in the same seat, "influence" is ideas or trade passed on,
+// "rival" is a power it fought or competed with.
+export const RELATION_KINDS = ["successor", "influence", "rival"] as const;
+
+export type RelationKind = (typeof RELATION_KINDS)[number];
+
+export interface Relation {
+  /** id of the related civilisation. */
+  to: string;
+  kind: RelationKind;
+}
+
 export interface Civilisation {
   id: string;
   name: string;
@@ -30,8 +47,14 @@ export interface Civilisation {
   start: number;
   /** Last year, signed (negative = BCE). Never 0. */
   end: number;
+  /** Heartland centroid latitude, signed degrees (north positive). */
+  lat: number;
+  /** Heartland centroid longitude, signed degrees (east positive). */
+  lon: number;
   blurb: string;
   events?: CivEvent[];
+  /** Directed ties from this civilisation to others, by id. */
+  relations?: Relation[];
 }
 
 export const CIVILISATIONS: Civilisation[] = [
@@ -41,12 +64,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Mesopotamia",
     start: -3500,
     end: -1900,
+    lat: 31,
+    lon: 46.1,
     blurb:
       "The first cities rose between the Tigris and Euphrates, and with them the first writing, the wheel, and the earliest laws.",
     events: [
       { year: -3200, text: "Cuneiform, the first known writing" },
       { year: -2334, text: "Sargon forges the Akkadian Empire" },
     ],
+    relations: [{ to: "babylon", kind: "successor" }],
   },
   {
     id: "babylon",
@@ -54,11 +80,17 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Mesopotamia",
     start: -1894,
     end: -539,
+    lat: 32.5,
+    lon: 44.4,
     blurb:
       "Babylon inherited Sumer's cities and gave the world a written code of law and a lasting tradition of astronomy.",
     events: [
       { year: -1754, text: "Hammurabi's law code is carved in stone" },
       { year: -586, text: "Neo-Babylonian empire at its height" },
+    ],
+    relations: [
+      { to: "achaemenid", kind: "successor" },
+      { to: "greece", kind: "influence" },
     ],
   },
   {
@@ -67,12 +99,18 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Egypt & Africa",
     start: -3100,
     end: -30,
+    lat: 26,
+    lon: 32,
     blurb:
       "Unified along the Nile for three thousand years, Egypt built the pyramids and left one of history's deepest written records.",
     events: [
       { year: -2560, text: "The Great Pyramid of Giza is completed" },
       { year: -1332, text: "Tutankhamun takes the throne" },
       { year: -31, text: "Cleopatra falls, Rome takes Egypt" },
+    ],
+    relations: [
+      { to: "kush", kind: "influence" },
+      { to: "rome", kind: "influence" },
     ],
   },
   {
@@ -81,12 +119,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Egypt & Africa",
     start: -1070,
     end: 350,
+    lat: 17,
+    lon: 33.7,
     blurb:
       "A Nubian power south of Egypt whose kings once ruled Egypt itself, rich on gold, iron, and the trade of the upper Nile.",
     events: [
       { year: -750, text: "Kushite pharaohs rule over Egypt" },
       { year: 350, text: "Aksum brings the kingdom to an end" },
     ],
+    relations: [{ to: "aksum", kind: "successor" }],
   },
   {
     id: "aksum",
@@ -94,12 +135,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Egypt & Africa",
     start: 100,
     end: 940,
+    lat: 14.1,
+    lon: 38.7,
     blurb:
       "An Ethiopian trading empire on the Red Sea, minting its own coins and among the first states to adopt Christianity.",
     events: [
       { year: 330, text: "Aksum adopts Christianity" },
       { year: 520, text: "Trade with Rome and India peaks" },
     ],
+    relations: [{ to: "caliphates", kind: "rival" }],
   },
   {
     id: "indus",
@@ -107,12 +151,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "South Asia",
     start: -3300,
     end: -1300,
+    lat: 27.3,
+    lon: 68.1,
     blurb:
       "A civilisation of planned brick cities with drains and standard weights, whose script we still cannot read.",
     events: [
       { year: -2600, text: "Harappa and Mohenjo-daro flourish" },
       { year: -1900, text: "The great cities are abandoned" },
     ],
+    relations: [{ to: "maurya", kind: "influence" }],
   },
   {
     id: "maurya",
@@ -120,12 +167,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "South Asia",
     start: -322,
     end: -185,
+    lat: 25.6,
+    lon: 85.1,
     blurb:
       "The first empire to unite most of the Indian subcontinent, remembered for a king who renounced war for Buddhism.",
     events: [
       { year: -268, text: "Ashoka begins his reign" },
       { year: -250, text: "Buddhism spreads across Asia" },
     ],
+    relations: [{ to: "gupta", kind: "successor" }],
   },
   {
     id: "gupta",
@@ -133,6 +183,8 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "South Asia",
     start: 320,
     end: 550,
+    lat: 25.6,
+    lon: 85.1,
     blurb:
       "A golden age of Indian science and art, when mathematicians formalised zero and the decimal system.",
     events: [
@@ -146,12 +198,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "East Asia",
     start: -1600,
     end: -256,
+    lat: 35,
+    lon: 113,
     blurb:
       "China's earliest dynasties, casting ritual bronzes and setting down the ideas Confucius would later shape.",
     events: [
       { year: -1200, text: "Oracle bone script records the future" },
       { year: -551, text: "Confucius is born" },
     ],
+    relations: [{ to: "han", kind: "successor" }],
   },
   {
     id: "han",
@@ -159,12 +214,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "East Asia",
     start: -206,
     end: 220,
+    lat: 34.3,
+    lon: 108.9,
     blurb:
       "A four-century empire that opened the Silk Road, invented paper, and set the mould for imperial China.",
     events: [
       { year: -130, text: "The Silk Road opens to the west" },
       { year: 105, text: "Paper is invented" },
     ],
+    relations: [{ to: "tang", kind: "successor" }],
   },
   {
     id: "tang",
@@ -172,12 +230,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "East Asia",
     start: 618,
     end: 907,
+    lat: 34.3,
+    lon: 108.9,
     blurb:
       "Medieval China at its most cosmopolitan, its capital the largest city on earth and its poetry never bettered.",
     events: [
       { year: 751, text: "Silk Road trade at its height" },
       { year: 868, text: "The first dated printed book" },
     ],
+    relations: [{ to: "caliphates", kind: "rival" }],
   },
   {
     id: "greece",
@@ -185,11 +246,17 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Mediterranean & Europe",
     start: -800,
     end: -146,
+    lat: 38,
+    lon: 23.7,
     blurb:
       "City-states that gave the west democracy, philosophy, and drama before Alexander carried Greek ideas to India.",
     events: [
       { year: -508, text: "Athens invents democracy" },
       { year: -336, text: "Alexander begins his conquests" },
+    ],
+    relations: [
+      { to: "rome", kind: "influence" },
+      { to: "maurya", kind: "influence" },
     ],
   },
   {
@@ -198,6 +265,8 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Mediterranean & Europe",
     start: -509,
     end: 476,
+    lat: 41.9,
+    lon: 12.5,
     blurb:
       "From republic to empire, Rome ringed the Mediterranean with roads, law, and cities that outlasted it by centuries.",
     events: [
@@ -205,6 +274,7 @@ export const CIVILISATIONS: Civilisation[] = [
       { year: 80, text: "The Colosseum opens in Rome" },
       { year: 476, text: "The western empire falls" },
     ],
+    relations: [{ to: "byzantine", kind: "successor" }],
   },
   {
     id: "byzantine",
@@ -212,11 +282,17 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Mediterranean & Europe",
     start: 330,
     end: 1453,
+    lat: 41,
+    lon: 28.9,
     blurb:
       "The eastern half of Rome that lived on for a thousand more years, guarding Greek learning behind the walls of Constantinople.",
     events: [
       { year: 537, text: "Hagia Sophia is completed" },
       { year: 1453, text: "Constantinople falls to the Ottomans" },
+    ],
+    relations: [
+      { to: "ottoman", kind: "successor" },
+      { to: "caliphates", kind: "rival" },
     ],
   },
   {
@@ -225,12 +301,15 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Persia & Near East",
     start: -550,
     end: -330,
+    lat: 30.2,
+    lon: 53.2,
     blurb:
       "The first empire to span three continents, ruling a patchwork of peoples through roads, satraps, and tolerance.",
     events: [
       { year: -539, text: "Cyrus the Great takes Babylon" },
       { year: -330, text: "Alexander topples the empire" },
     ],
+    relations: [{ to: "greece", kind: "rival" }],
   },
   {
     id: "caliphates",
@@ -238,6 +317,8 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Persia & Near East",
     start: 632,
     end: 1258,
+    lat: 33.3,
+    lon: 44.4,
     blurb:
       "A world empire born within a century of Islam, whose scholars preserved and advanced Greek, Persian, and Indian learning.",
     events: [
@@ -245,6 +326,7 @@ export const CIVILISATIONS: Civilisation[] = [
       { year: 830, text: "The House of Wisdom gathers the world's books" },
       { year: 1258, text: "The Mongols sack Baghdad" },
     ],
+    relations: [{ to: "ottoman", kind: "influence" }],
   },
   {
     id: "ottoman",
@@ -252,6 +334,8 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Persia & Near East",
     start: 1299,
     end: 1922,
+    lat: 41,
+    lon: 28.9,
     blurb:
       "A six-century empire straddling Europe, Asia, and Africa, whose fall reshaped the modern Middle East.",
     events: [
@@ -266,6 +350,8 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Mesoamerica",
     start: -2000,
     end: 1524,
+    lat: 17.2,
+    lon: -89.6,
     blurb:
       "Mesoamerican cities of pyramids and glyphs, with a calendar and a concept of zero worked out independently of the old world.",
     events: [
@@ -273,6 +359,7 @@ export const CIVILISATIONS: Civilisation[] = [
       { year: 900, text: "The southern cities collapse" },
       { year: 1524, text: "Spanish conquest begins" },
     ],
+    relations: [{ to: "aztec", kind: "influence" }],
   },
   {
     id: "aztec",
@@ -280,6 +367,8 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Mesoamerica",
     start: 1345,
     end: 1521,
+    lat: 19.4,
+    lon: -99.1,
     blurb:
       "A young, fierce empire ruled from Tenochtitlan, an island capital larger than most cities in Europe at the time.",
     events: [
@@ -293,9 +382,12 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Andes",
     start: -3500,
     end: -1800,
+    lat: -10.9,
+    lon: -77.5,
     blurb:
       "The oldest known civilisation in the Americas, raising monumental pyramids on the Peruvian coast without pottery or writing.",
     events: [{ year: -3000, text: "Pyramids rise at Caral" }],
+    relations: [{ to: "inca", kind: "influence" }],
   },
   {
     id: "inca",
@@ -303,6 +395,8 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Andes",
     start: 1438,
     end: 1533,
+    lat: -13.5,
+    lon: -72,
     blurb:
       "The largest empire the Americas ever saw, bound together by mountain roads and knotted-string records rather than writing.",
     events: [
@@ -316,6 +410,8 @@ export const CIVILISATIONS: Civilisation[] = [
     region: "Mediterranean & Europe",
     start: 1707,
     end: 1997,
+    lat: 52,
+    lon: -1.5,
     blurb:
       "The empire on which the sun never set, spreading the industrial revolution, the English language, and its own undoing.",
     events: [
@@ -324,5 +420,6 @@ export const CIVILISATIONS: Civilisation[] = [
       { year: 1947, text: "India wins independence" },
       { year: 1997, text: "Hong Kong is handed back" },
     ],
+    relations: [{ to: "ottoman", kind: "rival" }],
   },
 ];
