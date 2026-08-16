@@ -126,6 +126,47 @@ layoutIcons();
 requestAnimationFrame(layoutIcons); // rerun once fonts and layout have settled
 window.addEventListener("resize", layoutIcons);
 
+// The year milestone labels ride down the same gutter as the sticky vertical era
+// name. When a label reaches the era name's band they would print on top of each
+// other, so slide the year clear of the era text while they coincide. A
+// translateX moves the label sideways only, so its measured top/bottom never
+// change and the test below cannot oscillate.
+const eraNames = Array.from(document.querySelectorAll<HTMLElement>(".era-band-name"));
+const markLabels = Array.from(document.querySelectorAll<HTMLElement>(".era-mark-label"));
+const layoutMarks = (): void => {
+  const vh = window.innerHeight;
+  for (const label of markLabels) {
+    const lr = label.getBoundingClientRect();
+    let hit = false;
+    if (lr.bottom >= 0 && lr.top <= vh) {
+      for (const name of eraNames) {
+        const nr = name.getBoundingClientRect();
+        // both sit in the gutter, so overlapping heights means they collide
+        if (lr.top < nr.bottom && lr.bottom > nr.top) {
+          hit = true;
+          break;
+        }
+      }
+    }
+    label.classList.toggle("is-shifted", hit);
+  }
+};
+layoutMarks();
+let markTick = false;
+window.addEventListener(
+  "scroll",
+  () => {
+    if (markTick) return;
+    markTick = true;
+    requestAnimationFrame(() => {
+      layoutMarks();
+      markTick = false;
+    });
+  },
+  { passive: true },
+);
+window.addEventListener("resize", layoutMarks);
+
 let shownId: string | null = null; // the civ currently lit
 let lockedId: string | null = null; // a civ pinned lit while its popup is open
 
@@ -137,9 +178,15 @@ const relatedKinds = (id: string): Map<string, RelationKind> => {
   return m;
 };
 
-const drawConnectors = (id: string, related: Map<string, RelationKind>): void => {
+// clear only the drawn branches, leaving the arrowhead <defs> in place
+const clearConnectors = (): void => {
+  for (const el of connectors?.querySelectorAll(".connector, .connector-rival-mark") ?? [])
+    el.remove();
+};
+
+const drawConnectors = (id: string): void => {
   if (!connectors || !timelineEl) return;
-  connectors.replaceChildren();
+  clearConnectors();
   const from = barById.get(id);
   if (!from) return;
   const tl = timelineEl.getBoundingClientRect();
@@ -157,13 +204,50 @@ const drawConnectors = (id: string, related: Map<string, RelationKind>): void =>
     return { x: r.left - tl.left + r.width / 2, y: r.top - tl.top + r.height / 2 };
   };
   const a = origin(from);
-  for (const [rid, kind] of related) {
-    const to = barById.get(rid);
-    if (!to) continue;
+
+  // Draw each tie in its real direction. Successor and influence carry an
+  // arrowhead (marker-end), so the branch has to run from the source to the
+  // target: outgoing points away from the focused civ, incoming points back to
+  // it. Rivalry is mutual, so it gets no arrow and an X at its midpoint instead.
+  const drawEdge = (otherId: string, kind: RelationKind, pointToOther: boolean): void => {
+    const other = barById.get(otherId);
+    if (!other) return;
+    const b = origin(other);
+    const [p, rawQ] = pointToOther ? [a, b] : [b, a];
+    // the branch approaches its target horizontally, so for the arrowed kinds
+    // stop it just short of the target emblem: the arrowhead then sits beside
+    // the emblem pointing into it, instead of hiding under the 30px icon.
+    const pull = 18;
+    const q =
+      kind === "rival"
+        ? rawQ
+        : { x: rawQ.x + (p.x < rawQ.x ? -pull : pull), y: rawQ.y };
     const path = document.createElementNS(SVG_NS, "path");
-    path.setAttribute("d", connectorPath(a, origin(to)));
+    path.setAttribute("d", connectorPath(p, q));
     path.setAttribute("class", `connector connector-${kind}`);
     connectors.appendChild(path);
+    if (kind === "rival") {
+      const mx = (p.x + q.x) / 2;
+      const my = (p.y + q.y) / 2;
+      const s = 5;
+      const mark = document.createElementNS(SVG_NS, "path");
+      mark.setAttribute(
+        "d",
+        `M${mx - s} ${my - s} L${mx + s} ${my + s} M${mx + s} ${my - s} L${mx - s} ${my + s}`,
+      );
+      mark.setAttribute("class", "connector-rival-mark");
+      connectors.appendChild(mark);
+    }
+  };
+
+  const { outgoing, incoming } = relationsOf(id);
+  const drawn = new Set<string>();
+  for (const e of outgoing) {
+    drawEdge(e.civ.id, e.kind, true);
+    drawn.add(`${e.civ.id}:${e.kind}`);
+  }
+  for (const e of incoming) {
+    if (!drawn.has(`${e.civ.id}:${e.kind}`)) drawEdge(e.civ.id, e.kind, false);
   }
 };
 
@@ -180,14 +264,14 @@ const light = (id: string): void => {
     p.classList.toggle("active", pid === id);
     p.classList.toggle("related", related.has(pid));
   }
-  drawConnectors(id, related);
+  drawConnectors(id);
   shownId = id;
 };
 
 const clearLight = (): void => {
   for (const b of civBars) b.classList.remove("active", "related", "dimmed");
   for (const p of mapPins) p.classList.remove("active", "related");
-  connectors?.replaceChildren();
+  clearConnectors();
   nodesLayer?.replaceChildren();
   shownId = null;
 };
@@ -261,7 +345,7 @@ for (const b of civBars) {
 
 // lane widths are percentages, so re-measure the live connectors on resize
 window.addEventListener("resize", () => {
-  if (shownId) drawConnectors(shownId, relatedKinds(shownId));
+  if (shownId) drawConnectors(shownId);
 });
 
 // the branches anchor to the sticky icons, which move as you scroll, so redraw
@@ -273,7 +357,7 @@ window.addEventListener(
     if (!shownId || connTick) return;
     connTick = true;
     requestAnimationFrame(() => {
-      if (shownId) drawConnectors(shownId, relatedKinds(shownId));
+      if (shownId) drawConnectors(shownId);
       connTick = false;
     });
   },

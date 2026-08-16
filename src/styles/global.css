@@ -316,17 +316,19 @@ body {
   position: absolute;
   top: 4px;
   left: 8px;
-
-  /* a paper chip so the year pops slightly off the page and stays readable when
-     it passes over the sticky vertical era name in the gutter */
-  padding: 1px 7px;
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--paper) 90%, transparent);
-  box-shadow: 0 1px 3px rgb(0 0 0 / 14%);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--ink-soft);
+
+  /* the label rides the gutter, where the sticky vertical era name also sits.
+     When the two reach the same height main.ts adds .is-shifted and the year
+     slides clear of the era text rather than printing on top of it. */
+  transition: transform 0.25s ease;
+}
+
+.era-mark-label.is-shifted {
+  transform: translateX(var(--gutter));
 }
 
 /* sticky column legend: names the group each block of lanes belongs to, floating
@@ -433,6 +435,8 @@ body {
 .connectors {
   position: absolute;
   inset: 0;
+  z-index: 6; /* above the bars (hovered bar is 5) so lines and arrowheads read
+                 on top of the lanes, and below the group legend (8) */
   width: 100%;
   height: 100%;
   pointer-events: none;
@@ -440,24 +444,53 @@ body {
 
 .connector {
   fill: none;
-  stroke-width: 2;
+  stroke-width: 2.5;
   vector-effect: non-scaling-stroke;
-  opacity: 0.85;
+  opacity: 0.95;
 }
 
+/* lineage: a solid line with a filled arrowhead pointing to the civilisation it
+   gave rise to, so descent reads in one direction */
 .connector-successor {
   stroke: var(--hud-bg);
+  marker-end: url("#mk-successor");
 }
 
+/* transmission of ideas or trade: a dashed line with an open arrowhead pointing
+   to the side it influenced */
 .connector-influence {
   stroke: var(--accent);
-  stroke-dasharray: 7 5;
+  stroke-dasharray: 7 6;
+  marker-end: url("#mk-influence");
 }
 
+/* conflict: a red line with no direction, crossed by an X at its midpoint (the
+   .connector-rival-mark) to read as a clash rather than a hand-off */
 .connector-rival {
   stroke: #c0392b;
-  stroke-dasharray: 2 6;
+  stroke-dasharray: 1 7;
   stroke-linecap: round;
+}
+
+.connector-rival-mark {
+  fill: none;
+  stroke: #c0392b;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+/* arrowheads: fill/stroke inherit down into each marker's path */
+.mk-successor {
+  fill: var(--hud-bg);
+}
+
+.mk-influence {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* birth-year medallions: circular nodes carrying each civilisation's signature

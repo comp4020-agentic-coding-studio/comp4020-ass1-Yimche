@@ -106,8 +106,36 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
       }
     </div>
 
-    <!-- relation connectors, drawn on focus by main.ts (viewBox set in px) -->
-    <svg class="connectors" aria-hidden="true" preserveAspectRatio="none"></svg>
+    <!-- relation connectors, drawn on focus by main.ts (viewBox set in px). The
+         arrowheads are defined once here; main.ts only adds and removes paths. -->
+    <svg class="connectors" aria-hidden="true" preserveAspectRatio="none">
+      <defs>
+        <marker
+          id="mk-successor"
+          class="mk-successor"
+          markerWidth="12"
+          markerHeight="12"
+          refX="10.5"
+          refY="6"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path d="M0 0 L12 6 L0 12 Z"></path>
+        </marker>
+        <marker
+          id="mk-influence"
+          class="mk-influence"
+          markerWidth="13"
+          markerHeight="13"
+          refX="10"
+          refY="6.5"
+          orient="auto"
+          markerUnits="userSpaceOnUse"
+        >
+          <path d="M1 1 L11 6.5 L1 12"></path>
+        </marker>
+      </defs>
+    </svg>
 
     <!-- birth-year medallions, drawn on focus by main.ts (positioned in px) -->
     <div class="nodes" aria-hidden="true"></div>
