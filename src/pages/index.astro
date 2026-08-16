@@ -15,7 +15,7 @@ import {
 // Everything the visitor scrolls through is rendered server-side from the model,
 // so the timeline is a readable document even before the script runs. The script
 // only adds the live year readout, the reveal-on-scroll, and the detail popups.
-const { packed, lanes } = packLanes();
+const { packed, lanes, groups } = packLanes();
 const marks = eraMarks();
 const bands = eraBands();
 
@@ -67,6 +67,21 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
   </header>
 
   <main id="timeline" class="timeline" style={`--lanes:${lanes};height:${TIMELINE_HEIGHT}px`}>
+    <!-- sticky column legend: one label per group band, over the lanes -->
+    <div class="group-heads" aria-hidden="true">
+      {
+        groups.map((g) => (
+          <span
+            class="group-head"
+            data-region={slug(g.region)}
+            style={`left:${(g.startLane / lanes) * 100}%;width:${(g.laneCount / lanes) * 100}%`}
+          >
+            <span class="group-head-name">{g.name}</span>
+          </span>
+        ))
+      }
+    </div>
+
     <!-- named era bands down the gutter, drawn behind the bars -->
     <div class="eras" aria-hidden="true">
       {
@@ -104,6 +119,7 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
             class="civ"
             data-civ={c.id}
             data-region={slug(c.region)}
+            data-group={c.group}
             aria-label={`${c.name}, ${range(c.start, c.end)}, ${c.region}. Open details.`}
             style={`--lane:${c.lane};top:${yearToY(c.start)}px;height:${
               yearToY(c.end) - yearToY(c.start)

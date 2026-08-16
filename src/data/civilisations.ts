@@ -21,6 +21,39 @@ export const REGIONS = [
 
 export type Region = (typeof REGIONS)[number];
 
+// Finer than a region: a group is a labelled column of the timeline (a family of
+// civilisations that share a seat and a story), so the reader can see the set
+// broken into smaller, named clusters. Same-region groups are kept contiguous in
+// this order, so each region still reads as one colour band left to right. The
+// region drives the colour; the name is the column header.
+export interface Group {
+  id: string;
+  name: string;
+  region: Region;
+}
+
+export const GROUPS: Group[] = [
+  { id: "classical-med", name: "Classical Mediterranean", region: "Mediterranean & Europe" },
+  { id: "medieval-europe", name: "Medieval Europe", region: "Mediterranean & Europe" },
+  { id: "modern-europe", name: "Modern Europe", region: "Mediterranean & Europe" },
+  { id: "mesopotamia", name: "Mesopotamia", region: "Mesopotamia" },
+  { id: "levant", name: "Levant & Anatolia", region: "Persia & Near East" },
+  { id: "persia", name: "Persia", region: "Persia & Near East" },
+  { id: "islamic-world", name: "Islamic World", region: "Persia & Near East" },
+  { id: "nile-egypt", name: "Nile & Egypt", region: "Egypt & Africa" },
+  { id: "sub-saharan-africa", name: "Sub-Saharan Africa", region: "Egypt & Africa" },
+  { id: "ancient-india", name: "Ancient India", region: "South Asia" },
+  { id: "medieval-india", name: "Medieval India", region: "South Asia" },
+  { id: "steppe", name: "Steppe & Central Asia", region: "East Asia" },
+  { id: "china", name: "China", region: "East Asia" },
+  { id: "japan-korea", name: "Japan & Korea", region: "East Asia" },
+  { id: "southeast-asia", name: "Southeast Asia", region: "East Asia" },
+  { id: "mesoamerica", name: "Mesoamerica", region: "Mesoamerica" },
+  { id: "andes", name: "Andes", region: "Andes" },
+];
+
+export const groupById: Map<string, Group> = new Map(GROUPS.map((g) => [g.id, g]));
+
 export interface CivEvent {
   year: number;
   text: string;
@@ -43,6 +76,10 @@ export interface Civilisation {
   id: string;
   name: string;
   region: Region;
+  /** id of the {@link Group} column this civilisation packs into. */
+  group: string;
+  /** Architecture-icon id for the focus medallion; defaults to {@link group}. */
+  icon?: string;
   /** First year, signed (negative = BCE). Never 0. */
   start: number;
   /** Last year, signed (negative = BCE). Never 0. */
@@ -57,11 +94,18 @@ export interface Civilisation {
   relations?: Relation[];
 }
 
+/** The architecture-icon id for a civilisation's medallion: its own if set,
+ * otherwise its group's representative building. */
+export function iconFor(civ: Pick<Civilisation, "icon" | "group">): string {
+  return civ.icon ?? civ.group;
+}
+
 export const CIVILISATIONS: Civilisation[] = [
   {
     id: "sumer",
     name: "Sumer",
     region: "Mesopotamia",
+    group: "mesopotamia",
     start: -3500,
     end: -1900,
     lat: 31,
@@ -78,6 +122,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "babylon",
     name: "Babylonia",
     region: "Mesopotamia",
+    group: "mesopotamia",
     start: -1894,
     end: -539,
     lat: 32.5,
@@ -97,6 +142,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "egypt",
     name: "Ancient Egypt",
     region: "Egypt & Africa",
+    group: "nile-egypt",
     start: -3100,
     end: -30,
     lat: 26,
@@ -117,6 +163,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "kush",
     name: "Kingdom of Kush",
     region: "Egypt & Africa",
+    group: "nile-egypt",
     start: -1070,
     end: 350,
     lat: 17,
@@ -133,6 +180,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "aksum",
     name: "Kingdom of Aksum",
     region: "Egypt & Africa",
+    group: "sub-saharan-africa",
     start: 100,
     end: 940,
     lat: 14.1,
@@ -149,6 +197,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "indus",
     name: "Indus Valley",
     region: "South Asia",
+    group: "ancient-india",
     start: -3300,
     end: -1300,
     lat: 27.3,
@@ -165,6 +214,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "maurya",
     name: "Maurya Empire",
     region: "South Asia",
+    group: "ancient-india",
     start: -322,
     end: -185,
     lat: 25.6,
@@ -181,6 +231,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "gupta",
     name: "Gupta Empire",
     region: "South Asia",
+    group: "ancient-india",
     start: 320,
     end: 550,
     lat: 25.6,
@@ -196,6 +247,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "china-early",
     name: "Shang & Zhou China",
     region: "East Asia",
+    group: "china",
     start: -1600,
     end: -256,
     lat: 35,
@@ -212,6 +264,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "han",
     name: "Han Dynasty",
     region: "East Asia",
+    group: "china",
     start: -206,
     end: 220,
     lat: 34.3,
@@ -228,6 +281,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "tang",
     name: "Tang Dynasty",
     region: "East Asia",
+    group: "china",
     start: 618,
     end: 907,
     lat: 34.3,
@@ -244,6 +298,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "greece",
     name: "Ancient Greece",
     region: "Mediterranean & Europe",
+    group: "classical-med",
     start: -800,
     end: -146,
     lat: 38,
@@ -263,6 +318,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "rome",
     name: "Roman Empire",
     region: "Mediterranean & Europe",
+    group: "classical-med",
     start: -509,
     end: 476,
     lat: 41.9,
@@ -280,6 +336,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "byzantine",
     name: "Byzantine Empire",
     region: "Mediterranean & Europe",
+    group: "medieval-europe",
     start: 330,
     end: 1453,
     lat: 41,
@@ -299,6 +356,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "achaemenid",
     name: "Achaemenid Persia",
     region: "Persia & Near East",
+    group: "persia",
     start: -550,
     end: -330,
     lat: 30.2,
@@ -315,6 +373,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "caliphates",
     name: "Islamic Caliphates",
     region: "Persia & Near East",
+    group: "islamic-world",
     start: 632,
     end: 1258,
     lat: 33.3,
@@ -332,6 +391,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "ottoman",
     name: "Ottoman Empire",
     region: "Persia & Near East",
+    group: "islamic-world",
     start: 1299,
     end: 1922,
     lat: 41,
@@ -348,6 +408,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "maya",
     name: "Maya",
     region: "Mesoamerica",
+    group: "mesoamerica",
     start: -2000,
     end: 1524,
     lat: 17.2,
@@ -365,6 +426,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "aztec",
     name: "Aztec Empire",
     region: "Mesoamerica",
+    group: "mesoamerica",
     start: 1345,
     end: 1521,
     lat: 19.4,
@@ -380,6 +442,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "caral",
     name: "Norte Chico (Caral)",
     region: "Andes",
+    group: "andes",
     start: -3500,
     end: -1800,
     lat: -10.9,
@@ -393,6 +456,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "inca",
     name: "Inca Empire",
     region: "Andes",
+    group: "andes",
     start: 1438,
     end: 1533,
     lat: -13.5,
@@ -408,6 +472,7 @@ export const CIVILISATIONS: Civilisation[] = [
     id: "british",
     name: "British Empire",
     region: "Mediterranean & Europe",
+    group: "modern-europe",
     start: 1707,
     end: 1997,
     lat: 52,

@@ -94,7 +94,19 @@ describe("eraFor", () => {
 });
 
 describe("packLanes", () => {
-  const { packed, lanes } = packLanes();
+  const { packed, lanes, groups } = packLanes();
+
+  it("reports group bands that tile the lanes contiguously", () => {
+    expect(groups.length).toBeGreaterThan(0);
+    const ordered = [...groups].sort((a, b) => a.startLane - b.startLane);
+    let cursor = 0;
+    for (const b of ordered) {
+      expect(b.startLane, `${b.id} starts where the previous band ended`).toBe(cursor);
+      expect(b.laneCount, `${b.id} lane count`).toBeGreaterThan(0);
+      cursor += b.laneCount;
+    }
+    expect(cursor).toBe(lanes);
+  });
 
   it("assigns every civilisation a valid lane", () => {
     expect(packed.length).toBe(CIVILISATIONS.length);
@@ -117,10 +129,11 @@ describe("packLanes", () => {
   });
 
   it("splits an overlapping set into separate lanes and reuses a freed lane", () => {
+    const g = "test-group";
     const sample: Civilisation[] = [
-      { id: "a", name: "A", region: REGIONS[0], start: -100, end: 100, lat: 0, lon: 0, blurb: "x" },
-      { id: "b", name: "B", region: REGIONS[0], start: 0, end: 200, lat: 0, lon: 0, blurb: "x" },
-      { id: "c", name: "C", region: REGIONS[0], start: 300, end: 400, lat: 0, lon: 0, blurb: "x" },
+      { id: "a", name: "A", region: REGIONS[0], group: g, start: -100, end: 100, lat: 0, lon: 0, blurb: "x" },
+      { id: "b", name: "B", region: REGIONS[0], group: g, start: 0, end: 200, lat: 0, lon: 0, blurb: "x" },
+      { id: "c", name: "C", region: REGIONS[0], group: g, start: 300, end: 400, lat: 0, lon: 0, blurb: "x" },
     ];
     const r = packLanes(sample);
     const la = r.packed.find((c) => c.id === "a")!.lane;

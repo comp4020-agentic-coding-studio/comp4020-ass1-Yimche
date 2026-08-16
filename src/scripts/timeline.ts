@@ -2,7 +2,7 @@
 // position, human labels for years and eras, and the lane packing that lets
 // overlapping civilisations sit side by side. No DOM here, so it can be unit
 // tested and reused by both the Astro render and the browser glue.
-import { CIVILISATIONS, type Civilisation } from "../data/civilisations";
+import { CIVILISATIONS, GROUPS, groupById, type Civilisation } from "../data/civilisations";
 
 export const TIMELINE = {
   /** Earliest year on the axis (BCE, so negative). */
@@ -82,29 +82,75 @@ export interface PackedCiv extends Civilisation {
   lane: number;
 }
 
+/** A contiguous block of lanes owned by one group, for the column headers. */
+export interface GroupBand {
+  id: string;
+  name: string;
+  region: string;
+  /** First lane index this band occupies. */
+  startLane: number;
+  /** Number of lanes the band packs into. */
+  laneCount: number;
+}
+
 /**
- * Greedy lane packing. Civilisations are placed left to right by start year;
- * each takes the first column whose previous occupant has already ended,
- * opening a new column only when none is free. Guarantees that two
- * civilisations sharing a column never overlap in time.
+ * Group-aware greedy lane packing. Civilisations are bucketed by group (in
+ * GROUPS order, with any unknown group appended in first-seen order), then each
+ * bucket is packed left to right by start year into its own block of lanes:
+ * each civ takes the first column in its block whose previous occupant has
+ * already ended, opening a new one only when none is free. Blocks are laid out
+ * end to end so lane ranges never overlap between groups, which means two
+ * civilisations sharing a lane never overlap in time and each group reads as a
+ * labelled column band.
  */
 export function packLanes(civs: Civilisation[] = CIVILISATIONS): {
   packed: PackedCiv[];
   lanes: number;
+  groups: GroupBand[];
 } {
-  const sorted = [...civs].sort((a, b) => a.start - b.start || a.end - b.end);
-  const laneEnds: number[] = []; // last end year placed in each lane
-  const packed: PackedCiv[] = sorted.map((civ) => {
-    let lane = laneEnds.findIndex((end) => end <= civ.start);
-    if (lane === -1) {
-      lane = laneEnds.length;
-      laneEnds.push(civ.end);
-    } else {
-      laneEnds[lane] = civ.end;
-    }
-    return { ...civ, lane };
+  const order = new Map<string, number>();
+  GROUPS.forEach((g, i) => order.set(g.id, i));
+
+  // Groups present among these civs, in GROUPS order then first-seen order.
+  const firstSeen = new Map<string, number>();
+  for (const c of civs) {
+    if (!firstSeen.has(c.group)) firstSeen.set(c.group, firstSeen.size);
+  }
+  const present = [...firstSeen.keys()].sort((a, b) => {
+    const ra = order.has(a) ? order.get(a)! : GROUPS.length + firstSeen.get(a)!;
+    const rb = order.has(b) ? order.get(b)! : GROUPS.length + firstSeen.get(b)!;
+    return ra - rb;
   });
-  return { packed, lanes: laneEnds.length };
+
+  const packed: PackedCiv[] = [];
+  const groups: GroupBand[] = [];
+  let laneBase = 0;
+  for (const gid of present) {
+    const members = civs
+      .filter((c) => c.group === gid)
+      .sort((a, b) => a.start - b.start || a.end - b.end);
+    const laneEnds: number[] = []; // last end year placed in each lane of this block
+    for (const civ of members) {
+      let lane = laneEnds.findIndex((end) => end <= civ.start);
+      if (lane === -1) {
+        lane = laneEnds.length;
+        laneEnds.push(civ.end);
+      } else {
+        laneEnds[lane] = civ.end;
+      }
+      packed.push({ ...civ, lane: laneBase + lane });
+    }
+    const meta = groupById.get(gid);
+    groups.push({
+      id: gid,
+      name: meta?.name ?? gid,
+      region: meta?.region ?? members[0]!.region,
+      startLane: laneBase,
+      laneCount: laneEnds.length,
+    });
+    laneBase += laneEnds.length;
+  }
+  return { packed, lanes: laneBase, groups };
 }
 
 export interface EraMark {

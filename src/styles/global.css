@@ -4,7 +4,7 @@
 
 :root {
   --gutter: 72px;
-  --min-lane: 120px;
+  --min-lane: 96px;
   --max-timeline: 1200px;
   --lane-gap: 10px;
   --ink: #241c14;
@@ -291,6 +291,74 @@ body {
   font-size: 0.8rem;
   font-weight: 700;
   color: var(--ink-soft);
+}
+
+/* sticky column legend: names the group each block of lanes belongs to, floating
+   over the bars so the columns stay labelled while you scroll through time */
+.group-heads {
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  height: 30px;
+  margin: 0 8px 0 var(--gutter);
+  pointer-events: none;
+}
+
+.group-head {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  border-left: 1px solid var(--line);
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+
+  --civ-color: #999;
+}
+
+.group-head-name {
+  overflow: hidden;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: color-mix(in srgb, var(--civ-color) 72%, var(--ink));
+}
+
+.group-head[data-region="mesopotamia"] {
+  --civ-color: var(--r-mesopotamia);
+}
+
+.group-head[data-region="egypt-africa"] {
+  --civ-color: var(--r-egypt-africa);
+}
+
+.group-head[data-region="south-asia"] {
+  --civ-color: var(--r-south-asia);
+}
+
+.group-head[data-region="east-asia"] {
+  --civ-color: var(--r-east-asia);
+}
+
+.group-head[data-region="mediterranean-europe"] {
+  --civ-color: var(--r-mediterranean-europe);
+}
+
+.group-head[data-region="persia-near-east"] {
+  --civ-color: var(--r-persia-near-east);
+}
+
+.group-head[data-region="mesoamerica"] {
+  --civ-color: var(--r-mesoamerica);
+}
+
+.group-head[data-region="andes"] {
+  --civ-color: var(--r-andes);
 }
 
 .lanes {
@@ -680,7 +748,7 @@ body {
 @media (width <= 640px) {
   :root {
     --gutter: 54px;
-    --min-lane: 116px;
+    --min-lane: 72px;
   }
 
   .hud {
@@ -707,7 +775,8 @@ body {
   .hud-progress-fill,
   .map-pin circle,
   .map-pin-label,
-  .civ-node {
+  .civ-node,
+  .group-head {
     transition: none;
     animation: none;
   }
