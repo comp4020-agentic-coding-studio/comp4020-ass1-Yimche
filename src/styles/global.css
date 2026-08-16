@@ -80,6 +80,25 @@ body {
   color: var(--hud-ink);
   box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
   backdrop-filter: blur(4px);
+
+  /* the readout is meaningless before the scroll gives it a year, so it stays
+     hidden until the first scroll (main.ts toggles .is-visible) */
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s;
+}
+
+.hud.is-visible {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud {
+    transition: none;
+  }
 }
 
 .hud-year {
@@ -561,18 +580,22 @@ body {
   height: 60%;
 }
 
+/* A hovered or focused bar lifts above its neighbours (but stays below the
+   group legend, z-index 8; see fix for the legend band). */
+.civ:hover,
+.civ:focus-visible,
+.civ.active {
+  z-index: 5;
+}
+
 /* At rest a bar is a bare colour block: fit-to-width columns are too narrow to
-   hold text. The name and dates ride in a chip that appears on hover or keyboard
-   focus, escaping the narrow bar; the button keeps its full aria-label, and the
-   popup carries the same facts on click. */
-.civ-label {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 6;
-  display: none;
-  min-width: max-content;
-  max-width: 220px;
+   hold text. The name and dates ride in one floating tooltip that follows the
+   cursor on hover (and anchors to the bar on keyboard focus); the button keeps
+   its full aria-label and the popup carries the same facts on click. */
+.civ-tip {
+  position: fixed;
+  z-index: 45;
+  max-width: 240px;
   padding: 8px 10px;
   background: var(--hud-bg);
   color: var(--hud-ink);
@@ -581,20 +604,11 @@ body {
   pointer-events: none;
 }
 
-.civ:hover,
-.civ:focus-visible,
-.civ.active {
-  overflow: visible;
-  z-index: 5;
+.civ-tip[hidden] {
+  display: none;
 }
 
-.civ:hover .civ-label,
-.civ:focus-visible .civ-label,
-.civ.active .civ-label {
-  display: block;
-}
-
-.civ-name {
+.civ-tip-name {
   display: block;
   font-family: Georgia, "Times New Roman", serif;
   font-weight: 700;
@@ -602,7 +616,7 @@ body {
   line-height: 1.15;
 }
 
-.civ-dates {
+.civ-tip-dates {
   display: block;
   margin-top: 3px;
   font-size: 0.76rem;

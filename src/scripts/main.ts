@@ -14,6 +14,17 @@ const yearReadout = $("#year-readout");
 const eraReadout = $("#era-readout");
 const progressEl = $("#timeline-progress");
 const progressFill = $<HTMLElement>(".hud-progress-fill");
+const hudEl = $(".hud");
+
+// the readout only means something once the scroll gives it a year, so reveal
+// the HUD on the first scroll and keep it shown thereafter
+const revealHud = (): void => {
+  if (window.scrollY > 8) hudEl?.classList.add("is-visible");
+};
+if (hudEl) {
+  window.addEventListener("scroll", revealHud, { passive: true });
+  revealHud(); // in case the page loads already scrolled (refresh mid-page)
+}
 
 const clamp = (n: number, lo: number, hi: number): number =>
   Math.max(lo, Math.min(hi, n));
@@ -166,12 +177,63 @@ const deactivate = (): void => {
   if (!lockedId) clearLight();
 };
 
+// --- floating tooltip: name + dates, under the cursor -------------------
+const tipEl = document.getElementById("civ-tip");
+const civById = new Map(CIVILISATIONS.map((c) => [c.id, c]));
+
+const showTip = (id: string): boolean => {
+  const c = civById.get(id);
+  if (!tipEl || !c) return false;
+  const name = document.createElement("span");
+  name.className = "civ-tip-name";
+  name.textContent = c.name;
+  const dates = document.createElement("span");
+  dates.className = "civ-tip-dates";
+  dates.textContent = `${formatYear(c.start)} to ${formatYear(c.end)}`;
+  tipEl.replaceChildren(name, dates);
+  tipEl.hidden = false;
+  return true;
+};
+
+const hideTip = (): void => {
+  if (tipEl) tipEl.hidden = true;
+};
+
+// place the tooltip near a point, flipping to stay inside the viewport
+const placeTip = (x: number, y: number): void => {
+  if (!tipEl || tipEl.hidden) return;
+  const pad = 14;
+  const r = tipEl.getBoundingClientRect();
+  let left = x + pad;
+  let top = y + pad;
+  if (left + r.width > window.innerWidth - 8) left = x - pad - r.width;
+  if (top + r.height > window.innerHeight - 8) top = y - pad - r.height;
+  tipEl.style.left = `${Math.max(8, left)}px`;
+  tipEl.style.top = `${Math.max(8, top)}px`;
+};
+
 for (const b of civBars) {
   const id = b.dataset.civ ?? "";
-  b.addEventListener("pointerenter", () => activate(id));
-  b.addEventListener("focus", () => activate(id));
-  b.addEventListener("pointerleave", deactivate);
-  b.addEventListener("blur", deactivate);
+  b.addEventListener("pointerenter", (e) => {
+    activate(id);
+    if (showTip(id)) placeTip(e.clientX, e.clientY);
+  });
+  b.addEventListener("pointermove", (e) => placeTip(e.clientX, e.clientY));
+  b.addEventListener("focus", () => {
+    activate(id);
+    if (showTip(id)) {
+      const r = b.getBoundingClientRect(); // no cursor on keyboard: anchor to the bar
+      placeTip(r.left + r.width / 2, r.top);
+    }
+  });
+  b.addEventListener("pointerleave", () => {
+    deactivate();
+    hideTip();
+  });
+  b.addEventListener("blur", () => {
+    deactivate();
+    hideTip();
+  });
 }
 
 // lane widths are percentages, so re-measure the live connectors on resize
@@ -235,6 +297,7 @@ if (popup) {
     }
     fillRelations(id);
     if (trigger) opener = trigger; // keep the first opener when navigating within
+    hideTip(); // the popup carries the detail now, so drop the floating tip
     popup.hidden = false;
     lockedId = id;
     light(id);

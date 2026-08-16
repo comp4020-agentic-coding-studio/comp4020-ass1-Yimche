@@ -130,10 +130,6 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
             <span class="civ-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24"><use href={`#arch-${iconFor(c)}`} /></svg>
             </span>
-            <span class="civ-label">
-              <span class="civ-name">{c.name}</span>
-              <span class="civ-dates">{range(c.start, c.end)}</span>
-            </span>
           </button>
         ))
       }
@@ -164,6 +160,10 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
       run that got us here.
     </p>
   </footer>
+
+  <!-- floating tooltip: a bar's name and dates, following the cursor on hover
+       (anchored to the bar on keyboard focus); filled by main.ts -->
+  <div id="civ-tip" class="civ-tip" role="tooltip" hidden></div>
 
   <!-- detail popup, populated by main.ts from the dataset -->
   <div id="popup" class="popup" hidden>
