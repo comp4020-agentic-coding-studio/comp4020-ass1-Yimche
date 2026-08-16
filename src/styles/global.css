@@ -1,49 +1,29 @@
+/* Light green + white. The palette is committed to light on every machine:
+   the brief asked for light green and white, so there is no dark override to
+   drift out of sync. */
 :root {
-  --bg: #eef5ec;
-  --panel: #f7fbf5;
-  --ink: #15271c;
-  --ink-soft: #4a5d51;
-  --line: #caded0;
+  --bg: #eef6f0;
+  --panel: #fff;
+  --ink: #14271c;
+  --ink-soft: #52685b;
+  --line: #d3e6d9;
   --accent: #2f8f5b;
   --accent-ink: #fff;
   --danger: #c2410c;
-  --sky: #d6efe0;
-  --hill-far: #b7ddc2;
-  --ground: #8fb99a;
-  --structure: #6d8a76;
-  --structure-2: #59745f;
-  --glass: #cfeee0;
+  --sky: #e6f4ec;
+  --sky-2: #f6fbf7;
+  --hill-far: #cfe8d6;
+  --ground: #a9cbb3;
+  --structure: #7d9a85;
+  --structure-2: #64836d;
+  --glass: #bfe6cf;
   --strip-glow: #2f8f5b26;
-  --radar: #dcefe1;
+  --radar: #eef7f1;
   --radar-line: #9cc4ab;
   --radar-ink: #244b35;
   --trail: #2f8f5b;
 
-  color-scheme: light dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0e1712;
-    --panel: #16211a;
-    --ink: #e7f2ea;
-    --ink-soft: #9cb3a4;
-    --line: #294034;
-    --accent: #56c98a;
-    --accent-ink: #06120b;
-    --danger: #fb923c;
-    --sky: #12241a;
-    --hill-far: #1c3427;
-    --ground: #24402f;
-    --structure: #35563f;
-    --structure-2: #2a4633;
-    --glass: #7fd3a6;
-    --strip-glow: #56c98a1f;
-    --radar: #0d1c14;
-    --radar-line: #2f5540;
-    --radar-ink: #8fd3ac;
-    --trail: #56c98a;
-  }
+  color-scheme: light;
 }
 
 * {
