@@ -3,11 +3,10 @@ import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { beforeAll, describe, expect, it } from "vitest";
 
-// Contract for the built page's interactive shell. The choreography itself is
-// covered by scenario.test.ts against the pure model; this checks the DOM the
-// visitor actually reaches, and a keyboard/a11y floor the sensor roster does
-// not otherwise watch (see AGENTS.md). The demo is now a guided, scripted
-// walkthrough, so the controls are playback (play/step/reset), not manual adds.
+// Contract for the built page's interactive shell. The timeline UI's own
+// contract is added alongside this in the next commit; for now this holds the
+// keyboard/a11y floor the sensor roster does not otherwise watch (see
+// AGENTS.md).
 
 let doc: Document;
 
@@ -17,38 +16,7 @@ beforeAll(() => {
   doc = new JSDOM(readFileSync(distPath, "utf8")).window.document;
 });
 
-describe("airport page: interactive shell", () => {
-  it("ships the playback controls as real buttons", () => {
-    for (const id of ["#play", "#step", "#reset"]) {
-      const el = doc.querySelector(id);
-      expect(el, `${id} is missing from the built page`).toBeTruthy();
-      expect(el!.tagName, `${id} must be a <button>, not a clickable div`).toBe("BUTTON");
-    }
-  });
-
-  it("ships the scene hotspots as real, named buttons", () => {
-    for (const id of ["#open-gate", "#open-tower"]) {
-      const el = doc.querySelector(id);
-      expect(el, `${id} is missing from the built page`).toBeTruthy();
-      expect(el!.tagName, `${id} must be a <button>, not a clickable div`).toBe("BUTTON");
-      const name = (el!.textContent ?? "").trim() || el!.getAttribute("aria-label")?.trim();
-      expect(name, `${id} needs an accessible name`).toBeTruthy();
-    }
-  });
-
-  it("draws at least one runway as the scarce resource", () => {
-    const runways = doc.querySelectorAll(".runway[data-runway]");
-    expect(runways.length).toBeGreaterThan(0);
-  });
-
-  it("gives the scene a text alternative", () => {
-    const scene = doc.querySelector('.scene [role="img"]');
-    expect(scene, "the SVG scene needs role=img").toBeTruthy();
-    expect(scene!.getAttribute("aria-label")?.trim()).toBeTruthy();
-  });
-});
-
-describe("airport page: keyboard/a11y floor", () => {
+describe("page: keyboard/a11y floor", () => {
   it("every button has an accessible name", () => {
     for (const btn of doc.querySelectorAll("button")) {
       const name = (btn.textContent ?? "").trim() || btn.getAttribute("aria-label")?.trim();
