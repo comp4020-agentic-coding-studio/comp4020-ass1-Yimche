@@ -85,6 +85,9 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
       }
     </div>
 
+    <!-- relation connectors, drawn on focus by main.ts (viewBox set in px) -->
+    <svg class="connectors" aria-hidden="true" preserveAspectRatio="none"></svg>
+
     <!-- one bar per civilisation, packed into non-overlapping lanes -->
     <div class="lanes">
       {
@@ -129,6 +132,7 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
       <p class="popup-range" id="popup-range"></p>
       <p class="popup-blurb" id="popup-blurb"></p>
       <ol class="popup-events" id="popup-events"></ol>
+      <div class="popup-relations" id="popup-relations"></div>
     </div>
   </div>
 

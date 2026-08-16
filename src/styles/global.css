@@ -298,6 +298,39 @@ body {
   inset: 0 8px 0 var(--gutter);
 }
 
+/* relation connectors: branches drawn on focus between related bars. The
+   viewBox is set in px by main.ts; non-scaling strokes keep the lines even
+   though the box is stretched to the timeline width. */
+.connectors {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.connector {
+  fill: none;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  opacity: 0.85;
+}
+
+.connector-successor {
+  stroke: var(--hud-bg);
+}
+
+.connector-influence {
+  stroke: var(--accent);
+  stroke-dasharray: 7 5;
+}
+
+.connector-rival {
+  stroke: #c0392b;
+  stroke-dasharray: 2 6;
+  stroke-linecap: round;
+}
+
 /* one civilisation */
 .civ {
   position: absolute;
@@ -336,6 +369,23 @@ body {
 .civ:focus-visible {
   outline: 3px solid var(--hud-bg);
   outline-offset: 2px;
+}
+
+/* focus-highlight states (added by main.ts). Defined after .in-view so the
+   dimming wins over the reveal opacity. */
+.civ.active {
+  filter: brightness(1.1);
+  box-shadow: 0 8px 22px rgb(0 0 0 / 38%);
+  z-index: 2;
+}
+
+.civ.related {
+  box-shadow: 0 0 0 3px var(--hud-bg);
+  z-index: 1;
+}
+
+.civ.dimmed {
+  opacity: 0.22;
 }
 
 .civ-name {
@@ -518,6 +568,63 @@ body {
 .popup-event-year {
   font-weight: 700;
   color: var(--ink);
+}
+
+/* relations: clickable ties to other civilisations, grouped by kind */
+.popup-relations {
+  margin-top: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.popup-relations:empty {
+  display: none;
+}
+
+.popup-rel-label {
+  margin: 0;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.popup-rel-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.popup-rel {
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-left-width: 4px;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.popup-rel-successor {
+  border-left-color: var(--hud-bg);
+}
+
+.popup-rel-influence {
+  border-left-color: var(--accent);
+}
+
+.popup-rel-rival {
+  border-left-color: #c0392b;
+}
+
+.popup-rel:hover,
+.popup-rel:focus-visible {
+  background: var(--paper);
+  outline: none;
 }
 
 /* ------- responsive ------- */

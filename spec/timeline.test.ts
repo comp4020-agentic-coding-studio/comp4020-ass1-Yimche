@@ -118,9 +118,9 @@ describe("packLanes", () => {
 
   it("splits an overlapping set into separate lanes and reuses a freed lane", () => {
     const sample: Civilisation[] = [
-      { id: "a", name: "A", region: REGIONS[0], start: -100, end: 100, blurb: "x" },
-      { id: "b", name: "B", region: REGIONS[0], start: 0, end: 200, blurb: "x" },
-      { id: "c", name: "C", region: REGIONS[0], start: 300, end: 400, blurb: "x" },
+      { id: "a", name: "A", region: REGIONS[0], start: -100, end: 100, lat: 0, lon: 0, blurb: "x" },
+      { id: "b", name: "B", region: REGIONS[0], start: 0, end: 200, lat: 0, lon: 0, blurb: "x" },
+      { id: "c", name: "C", region: REGIONS[0], start: 300, end: 400, lat: 0, lon: 0, blurb: "x" },
     ];
     const r = packLanes(sample);
     const la = r.packed.find((c) => c.id === "a")!.lane;

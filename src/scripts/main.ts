@@ -2,7 +2,8 @@
 // timeline.ts as a pure model; the civilisation facts live in the dataset. This
 // file turns scroll position into the live year readout, reveals bars as they
 // enter view, and fills the detail popup on demand.
-import { CIVILISATIONS } from "../data/civilisations";
+import { CIVILISATIONS, type RelationKind } from "../data/civilisations";
+import { connectorPath, relationsOf, type ResolvedRelation } from "./geo";
 import { eraFor, formatYear, TIMELINE_HEIGHT, yToYear } from "./timeline";
 
 const $ = <T extends HTMLElement>(sel: string): T | null =>
@@ -72,6 +73,94 @@ if (reduceMotion || !("IntersectionObserver" in window)) {
   for (const el of revealable) observer.observe(el);
 }
 
+// --- focus highlight: light the map and branch to related civilisations ---
+// Focusing a civilisation (hover, keyboard focus, or opening its popup) lights
+// its pin on the map, draws connectors to the civilisations it relates to, and
+// dims the rest. The relations come from the same pure model the popup uses.
+const connectors = document.querySelector<SVGSVGElement>(".connectors");
+const civBars = Array.from(document.querySelectorAll<HTMLElement>(".civ[data-civ]"));
+const mapPins = Array.from(document.querySelectorAll<SVGElement>(".map-pin[data-civ]"));
+const barById = new Map(civBars.map((b) => [b.dataset.civ ?? "", b]));
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+let shownId: string | null = null; // the civ currently lit
+let lockedId: string | null = null; // a civ pinned lit while its popup is open
+
+const relatedKinds = (id: string): Map<string, RelationKind> => {
+  const { outgoing, incoming } = relationsOf(id);
+  const m = new Map<string, RelationKind>();
+  for (const e of outgoing) m.set(e.civ.id, e.kind);
+  for (const e of incoming) if (!m.has(e.civ.id)) m.set(e.civ.id, e.kind);
+  return m;
+};
+
+const drawConnectors = (id: string, related: Map<string, RelationKind>): void => {
+  if (!connectors || !timelineEl) return;
+  connectors.replaceChildren();
+  const from = barById.get(id);
+  if (!from) return;
+  const tl = timelineEl.getBoundingClientRect();
+  connectors.setAttribute("viewBox", `0 0 ${tl.width} ${TIMELINE_HEIGHT}`);
+  const centre = (el: HTMLElement): { x: number; y: number } => {
+    const r = el.getBoundingClientRect();
+    return { x: r.left - tl.left + r.width / 2, y: r.top - tl.top + r.height / 2 };
+  };
+  const a = centre(from);
+  for (const [rid, kind] of related) {
+    const to = barById.get(rid);
+    if (!to) continue;
+    const path = document.createElementNS(SVG_NS, "path");
+    path.setAttribute("d", connectorPath(a, centre(to)));
+    path.setAttribute("class", `connector connector-${kind}`);
+    connectors.appendChild(path);
+  }
+};
+
+const light = (id: string): void => {
+  const related = relatedKinds(id);
+  for (const b of civBars) {
+    const bid = b.dataset.civ ?? "";
+    b.classList.toggle("active", bid === id);
+    b.classList.toggle("related", related.has(bid));
+    b.classList.toggle("dimmed", bid !== id && !related.has(bid));
+  }
+  for (const p of mapPins) {
+    const pid = p.getAttribute("data-civ") ?? "";
+    p.classList.toggle("active", pid === id);
+    p.classList.toggle("related", related.has(pid));
+  }
+  drawConnectors(id, related);
+  shownId = id;
+};
+
+const clearLight = (): void => {
+  for (const b of civBars) b.classList.remove("active", "related", "dimmed");
+  for (const p of mapPins) p.classList.remove("active", "related");
+  connectors?.replaceChildren();
+  shownId = null;
+};
+
+const activate = (id: string): void => {
+  if (lockedId) return; // while a popup is open it owns the highlight
+  light(id);
+};
+const deactivate = (): void => {
+  if (!lockedId) clearLight();
+};
+
+for (const b of civBars) {
+  const id = b.dataset.civ ?? "";
+  b.addEventListener("pointerenter", () => activate(id));
+  b.addEventListener("focus", () => activate(id));
+  b.addEventListener("pointerleave", deactivate);
+  b.addEventListener("blur", deactivate);
+}
+
+// lane widths are percentages, so re-measure the live connectors on resize
+window.addEventListener("resize", () => {
+  if (shownId) drawConnectors(shownId, relatedKinds(shownId));
+});
+
 // --- detail popup -------------------------------------------------------
 const popup = $("#popup");
 if (popup) {
@@ -81,9 +170,10 @@ if (popup) {
   const rangeEl = $("#popup-range");
   const blurbEl = $("#popup-blurb");
   const eventsEl = $<HTMLOListElement>("#popup-events");
+  const relationsEl = $("#popup-relations");
   let opener: HTMLElement | null = null;
 
-  const openCiv = (id: string, trigger: HTMLElement): void => {
+  const openCiv = (id: string, trigger?: HTMLElement): void => {
     const civ = byId.get(id);
     if (!civ) return;
     if (titleEl) titleEl.textContent = civ.name;
@@ -98,18 +188,60 @@ if (popup) {
         eventsEl.appendChild(li);
       }
     }
-    opener = trigger;
+    fillRelations(id);
+    if (trigger) opener = trigger; // keep the first opener when navigating within
     popup.hidden = false;
+    lockedId = id;
+    light(id);
     popup.querySelector<HTMLButtonElement>(".popup-close")?.focus();
   };
 
+  // grouped, clickable relations built from the same model as the map highlight
+  function fillRelations(id: string): void {
+    if (!relationsEl) return;
+    relationsEl.replaceChildren();
+    const { outgoing, incoming } = relationsOf(id);
+    const group = (label: string, items: ResolvedRelation[]): void => {
+      if (!items.length) return;
+      const heading = document.createElement("p");
+      heading.className = "popup-rel-label";
+      heading.textContent = label;
+      relationsEl.appendChild(heading);
+      const list = document.createElement("div");
+      list.className = "popup-rel-list";
+      for (const e of items) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = `popup-rel popup-rel-${e.kind}`;
+        btn.dataset.civ = e.civ.id;
+        btn.textContent = e.civ.name;
+        btn.addEventListener("click", () => openCiv(e.civ.id));
+        list.appendChild(btn);
+      }
+      relationsEl.appendChild(list);
+    };
+    const seen = new Set<string>();
+    group("Grew from", incoming.filter((e) => e.kind === "successor"));
+    group("Gave rise to", outgoing.filter((e) => e.kind === "successor"));
+    group("Influenced", outgoing.filter((e) => e.kind === "influence"));
+    group("Influenced by", incoming.filter((e) => e.kind === "influence"));
+    group(
+      "Rival of",
+      [...outgoing, ...incoming].filter(
+        (e) => e.kind === "rival" && !seen.has(e.civ.id) && seen.add(e.civ.id),
+      ),
+    );
+  }
+
   const close = (): void => {
     popup.hidden = true;
+    lockedId = null;
+    clearLight();
     opener?.focus();
     opener = null;
   };
 
-  for (const btn of document.querySelectorAll<HTMLButtonElement>(".civ[data-civ]")) {
+  for (const btn of civBars) {
     btn.addEventListener("click", () => openCiv(btn.dataset.civ ?? "", btn));
   }
   for (const el of popup.querySelectorAll<HTMLElement>("[data-close]")) {
