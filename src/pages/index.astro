@@ -9,8 +9,9 @@ const runways = ["27", "34"];
 
 <Layout title="One runway, many planes — how ATC decides who lands">
   <header>
-    <nav aria-label="Primary">
-      <a href="./" aria-current="page">Tower</a>
+    <nav aria-label="Views">
+      <button id="view-tower-btn" class="nav-btn" type="button" data-view="airport" aria-current="true">Tower</button>
+      <button id="view-map-btn" class="nav-btn" type="button" data-view="map">Sky map</button>
     </nav>
   </header>
 
@@ -24,48 +25,95 @@ const runways = ["27", "34"];
       has to keep circling.
     </p>
 
-    <section class="scene" aria-label="Side-on view of the airport">
-      <svg
-        class="backdrop"
-        viewBox="0 0 100 60"
-        preserveAspectRatio="xMidYMid slice"
-        role="img"
-        aria-label="A low-poly airport: control tower on the left, terminal on the right, runways along the ground, and planes holding in the sky above."
+    <div class="views">
+      <!-- Airport: side-on view -->
+      <section
+        id="view-airport"
+        class="view scene"
+        aria-label="Side-on view of the airport"
       >
-        <!-- sky -->
-        <rect x="0" y="0" width="100" height="44" fill="var(--sky)"></rect>
-        <!-- distant hills, low-poly -->
-        <polygon points="0,44 18,33 34,44" fill="var(--hill-far)"></polygon>
-        <polygon points="22,44 46,30 70,44" fill="var(--hill-far)"></polygon>
-        <polygon points="58,44 82,34 100,44" fill="var(--hill-far)"></polygon>
-        <!-- ground -->
-        <rect x="0" y="44" width="100" height="16" fill="var(--ground)"></rect>
-        <!-- ATC tower, left -->
-        <g class="tower">
-          <polygon points="6,44 10,44 9,20 7,20" fill="var(--structure)"></polygon>
-          <polygon points="5.5,20 10.5,20 11,14 5,14" fill="var(--structure-2)"></polygon>
-          <polygon points="6,14 10,14 10,11 6,11" fill="var(--glass)"></polygon>
-        </g>
-        <!-- terminal, right -->
-        <g class="terminal">
-          <polygon points="80,44 98,44 98,32 86,32 80,37" fill="var(--structure)"></polygon>
-          <polygon points="86,32 98,32 98,29 90,29" fill="var(--structure-2)"></polygon>
-        </g>
-      </svg>
+        <svg
+          class="backdrop"
+          viewBox="0 0 100 60"
+          preserveAspectRatio="xMidYMid slice"
+          role="img"
+          aria-label="A low-poly airport: control tower on the left, terminal on the right, runways along the ground, and planes holding in the sky above."
+        >
+          <rect x="0" y="0" width="100" height="44" fill="var(--sky)"></rect>
+          <polygon points="0,44 18,33 34,44" fill="var(--hill-far)"></polygon>
+          <polygon points="22,44 46,30 70,44" fill="var(--hill-far)"></polygon>
+          <polygon points="58,44 82,34 100,44" fill="var(--hill-far)"></polygon>
+          <rect x="0" y="44" width="100" height="16" fill="var(--ground)"></rect>
+          <!-- ATC tower, left (a click target to the tower interior later) -->
+          <g class="tower">
+            <polygon points="6,44 10,44 9,20 7,20" fill="var(--structure)"></polygon>
+            <polygon points="5.5,20 10.5,20 11,14 5,14" fill="var(--structure-2)"></polygon>
+            <polygon points="6,14 10,14 10,11 6,11" fill="var(--glass)"></polygon>
+          </g>
+          <!-- terminal, right -->
+          <g class="terminal">
+            <polygon points="80,44 98,44 98,32 86,32 80,37" fill="var(--structure)"></polygon>
+            <polygon points="86,32 98,32 98,29 90,29" fill="var(--structure-2)"></polygon>
+          </g>
+        </svg>
 
-      <!-- planes are positioned into this layer by main.ts; each runway strip
-           is a drop target the render layer aligns planes to. -->
-      <div class="ground-strips" aria-hidden="true">
-        {
-          runways.map((id, i) => (
-            <div class="runway" data-runway={id} style={`--lane:${i};`}>
-              <span class="runway-id">RWY {id}</span>
-            </div>
-          ))
-        }
-      </div>
-      <div id="planes" class="planes" aria-hidden="true"></div>
-    </section>
+        <button id="sky-to-map" type="button" class="sky-hit" aria-label="Open the sky map">
+          <span class="sky-hint">Tap the sky for the map</span>
+        </button>
+
+        <div class="ground-strips" aria-hidden="true">
+          {
+            runways.map((id, i) => (
+              <div class="runway" data-runway={id} style={`--lane:${i};`}>
+                <span class="runway-id">RWY {id}</span>
+              </div>
+            ))
+          }
+        </div>
+        <div id="planes" class="planes" aria-hidden="true"></div>
+      </section>
+
+      <!-- Sky map: top-down view -->
+      <section
+        id="view-map"
+        class="view map-wrap"
+        aria-label="Top-down map of the sky around the airport"
+        hidden
+      >
+        <svg
+          class="map"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="xMidYMid meet"
+          role="img"
+          aria-label="A radar-style top-down map: the airport and its two runways at the centre, a holding fix to the north-east where arrivals circle, and each aircraft's recent track."
+        >
+          <rect x="0" y="0" width="100" height="100" fill="var(--radar)"></rect>
+          <!-- range rings -->
+          <circle cx="50" cy="58" r="40" class="ring"></circle>
+          <circle cx="50" cy="58" r="26" class="ring"></circle>
+          <circle cx="50" cy="58" r="12" class="ring"></circle>
+          <!-- runways, top-down -->
+          <g class="map-runways">
+            <rect x="34" y="56.5" width="32" height="3" rx="1" data-map-runway="27"></rect>
+            <rect x="48.5" y="44" width="3" height="28" rx="1" transform="rotate(-20 50 58)" data-map-runway="34"></rect>
+          </g>
+          <text x="67" y="60.5" class="map-label">27</text>
+          <text x="41" y="43" class="map-label">34</text>
+          <!-- holding fix -->
+          <circle cx="76" cy="26" r="1.6" class="fix"></circle>
+          <text x="79" y="27" class="map-label">HOLD</text>
+          <!-- compass -->
+          <text x="50" y="8" class="compass">N</text>
+          <!-- trails and live aircraft are drawn by main.ts -->
+          <g id="map-trails"></g>
+          <g id="map-planes"></g>
+        </svg>
+        <p class="map-hint">
+          Arrivals circle the holding fix, burning fuel, until you clear one to a
+          runway. Their tracks fade behind them.
+        </p>
+      </section>
+    </div>
 
     <section class="panel" aria-label="Controls and flight strips">
       <div class="controls">
@@ -85,7 +133,6 @@ const runways = ["27", "34"];
       <p id="board-empty" class="board-empty" hidden>
         Quiet skies. Add an arrival or a departure.
       </p>
-      <!-- flight strips are rendered here from state by main.ts -->
       <ul id="board" class="board" aria-label="Waiting and active flights"></ul>
     </section>
 

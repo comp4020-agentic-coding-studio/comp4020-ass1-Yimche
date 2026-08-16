@@ -28,6 +28,13 @@ const runwayEls = Array.from(
 );
 const runwayIds = runwayEls.map((el) => el.dataset.runway ?? "");
 
+// M2 sky-map layers (top-down view). Drawn into SVG groups by renderMap().
+const SVGNS = "http://www.w3.org/2000/svg";
+const mapPlanes = document.getElementById("map-planes");
+const mapTrails = document.getElementById("map-trails");
+const airportView = document.getElementById("view-airport");
+const mapView = document.getElementById("view-map");
+
 // Guard: if the scene markup isn't present, do nothing rather than throw.
 if (planesLayer && board) {
   let state: SimState = createInitialState();
@@ -151,6 +158,118 @@ if (planesLayer && board) {
     if (statLanded) statLanded.textContent = `Landed ${landed}`;
     if (statDeparted) statDeparted.textContent = `Departed ${departed}`;
     if (statEmergency) statEmergency.textContent = `Emergencies ${emergencies}`;
+
+    renderMap();
+  }
+
+  // --- sky map (top-down) ----------------------------------------------
+  // Positions and trails are derived here, in the view layer, so the pure
+  // sequencer contract stays untouched: the map is just a second drawing of
+  // the same SimState.
+  const MAP_FIX = { x: 76, y: 26 };
+  const trails = new Map<string, { x: number; y: number }[]>();
+  let trailAt = -Infinity; // last sim-time (ms) a trail point was sampled
+
+  function mapPosition(
+    plane: Plane,
+    holdIndex: number,
+    holdCount: number,
+  ): { x: number; y: number } {
+    switch (plane.phase) {
+      case "holding": {
+        // Circle the holding fix; fan planes around the ring and rotate slowly.
+        const ring = 5 + (holdIndex % 3) * 3;
+        const base = holdCount > 0 ? (holdIndex / holdCount) * Math.PI * 2 : 0;
+        const a = base + state.t / 3600;
+        return { x: MAP_FIX.x + Math.cos(a) * ring, y: MAP_FIX.y + Math.sin(a) * ring };
+      }
+      case "emergency":
+        // Broken off the hold, running straight for the field.
+        return { x: 64, y: 41 };
+      case "runway": {
+        const lane = Math.max(0, runwayIds.indexOf(plane.runwayId ?? ""));
+        return lane === 0 ? { x: 44, y: 58 } : { x: 50, y: 52 };
+      }
+      case "gate":
+        return { x: 50, y: 64 };
+      default:
+        return { x: 50, y: 58 };
+    }
+  }
+
+  function renderMap(): void {
+    if (!mapPlanes || !mapTrails) return;
+    const holding = state.planes.filter((p) => p.phase === "holding");
+    const holdIndex = new Map<string, number>();
+    holding.forEach((p, i) => holdIndex.set(p.id, i));
+
+    // Sample trails on a sim-time cadence so the track doesn't depend on the
+    // frame rate or how long the map tab happened to be open.
+    const sample = state.t - trailAt >= 400;
+    if (sample) trailAt = state.t;
+
+    const seen = new Set<string>();
+    for (const plane of state.planes) {
+      if (plane.phase === "departed") continue;
+      seen.add(plane.id);
+      const pos = mapPosition(plane, holdIndex.get(plane.id) ?? 0, holding.length);
+
+      const pts = trails.get(plane.id) ?? [];
+      if (sample || pts.length === 0) {
+        pts.push(pos);
+        while (pts.length > 24) pts.shift();
+        trails.set(plane.id, pts);
+      }
+
+      let g = mapPlanes.querySelector<SVGGElement>(`[data-map-plane="${plane.id}"]`);
+      if (!g) {
+        g = document.createElementNS(SVGNS, "g") as SVGGElement;
+        g.setAttribute("data-map-plane", plane.id);
+        const dot = document.createElementNS(SVGNS, "circle");
+        dot.setAttribute("r", "1.8");
+        dot.setAttribute("class", "map-dot");
+        const label = document.createElementNS(SVGNS, "text");
+        label.setAttribute("class", "map-flight");
+        g.append(dot, label);
+        mapPlanes.appendChild(g);
+      }
+      const dot = g.firstChild as SVGCircleElement;
+      const label = g.lastChild as SVGTextElement;
+      dot.setAttribute("cx", pos.x.toFixed(1));
+      dot.setAttribute("cy", pos.y.toFixed(1));
+      label.setAttribute("x", (pos.x + 2.4).toFixed(1));
+      label.setAttribute("y", (pos.y + 0.8).toFixed(1));
+      label.textContent = plane.flight;
+      g.setAttribute("data-phase", plane.phase);
+      g.classList.toggle(
+        "low",
+        plane.kind === "arrival" && plane.fuel <= START_FUEL * 0.35,
+      );
+    }
+
+    for (const [id, pts] of trails) {
+      if (!seen.has(id)) continue;
+      let pl = mapTrails.querySelector<SVGPolylineElement>(`[data-map-trail="${id}"]`);
+      if (!pl) {
+        pl = document.createElementNS(SVGNS, "polyline") as SVGPolylineElement;
+        pl.setAttribute("data-map-trail", id);
+        pl.setAttribute("class", "map-trail");
+        mapTrails.appendChild(pl);
+      }
+      pl.setAttribute("points", pts.map((p) => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" "));
+    }
+
+    for (const el of Array.from(mapPlanes.children)) {
+      const id = el.getAttribute("data-map-plane");
+      if (id && !seen.has(id)) el.remove();
+    }
+    for (const el of Array.from(mapTrails.children)) {
+      const id = el.getAttribute("data-map-trail");
+      if (id && !seen.has(id)) {
+        el.remove();
+        trails.delete(id);
+      }
+    }
   }
 
   function renderBoard(): void {
@@ -248,6 +367,10 @@ if (planesLayer && board) {
     counted.departed.clear();
     counted.emergency.clear();
     planesLayer!.replaceChildren();
+    trails.clear();
+    trailAt = -Infinity;
+    mapPlanes?.replaceChildren();
+    mapTrails?.replaceChildren();
     render();
   });
   const pauseBtn = $<HTMLButtonElement>("#pause");
@@ -257,6 +380,20 @@ if (planesLayer && board) {
     pauseBtn.setAttribute("aria-pressed", String(paused));
     if (!paused) last = performance.now();
   });
+
+  // --- view switch ------------------------------------------------------
+  const towerBtn = $<HTMLButtonElement>("#view-tower-btn");
+  const mapBtn = $<HTMLButtonElement>("#view-map-btn");
+  function showView(name: "airport" | "map"): void {
+    if (airportView) airportView.hidden = name !== "airport";
+    if (mapView) mapView.hidden = name !== "map";
+    towerBtn?.setAttribute("aria-current", String(name === "airport"));
+    mapBtn?.setAttribute("aria-current", String(name === "map"));
+    if (name === "map") renderMap();
+  }
+  towerBtn?.addEventListener("click", () => showView("airport"));
+  mapBtn?.addEventListener("click", () => showView("map"));
+  $("#sky-to-map")?.addEventListener("click", () => showView("map"));
 
   render();
   requestAnimationFrame(frame);

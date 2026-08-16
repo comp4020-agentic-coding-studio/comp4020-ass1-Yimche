@@ -14,6 +14,10 @@
   --structure-2: #59745f;
   --glass: #cfeee0;
   --strip-glow: #2f8f5b26;
+  --radar: #dcefe1;
+  --radar-line: #9cc4ab;
+  --radar-ink: #244b35;
+  --trail: #2f8f5b;
 
   color-scheme: light dark;
 }
@@ -35,6 +39,10 @@
     --structure-2: #2a4633;
     --glass: #7fd3a6;
     --strip-glow: #56c98a1f;
+    --radar: #0d1c14;
+    --radar-line: #2f5540;
+    --radar-ink: #8fd3ac;
+    --trail: #56c98a;
   }
 }
 
@@ -57,14 +65,25 @@ main {
 }
 
 header nav {
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
+  display: flex;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-header nav a {
+.nav-btn {
+  background: transparent;
   color: var(--accent);
-  text-decoration: none;
+  border-color: var(--line);
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.nav-btn[aria-current="true"] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
 }
 
 h1 {
@@ -210,6 +229,119 @@ h1 {
   50% {
     opacity: 0.25;
   }
+}
+
+/* click-the-sky affordance: a transparent button over the upper scene that
+   opens the map. Sits under the planes so clearance controls still work. */
+.sky-hit {
+  position: absolute;
+  inset: 0 0 30%;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 0.6rem;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.sky-hint {
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.sky-hit:hover .sky-hint,
+.sky-hit:focus-visible .sky-hint {
+  opacity: 1;
+}
+
+/* ---- sky map (top-down) --------------------------------------------- */
+.map-wrap {
+  margin: 1.5rem 0;
+}
+
+.map {
+  display: block;
+  width: 100%;
+  height: clamp(260px, 44vh, 520px);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--radar);
+}
+
+.ring {
+  fill: none;
+  stroke: var(--radar-line);
+  stroke-width: 0.3;
+  stroke-dasharray: 1 1.5;
+}
+
+.map-runways rect {
+  fill: var(--radar-ink);
+}
+
+.fix {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 0.5;
+}
+
+.map-label {
+  fill: var(--radar-ink);
+  font-size: 3px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.compass {
+  fill: var(--radar-line);
+  font-size: 4px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.map-trail {
+  fill: none;
+  stroke: var(--trail);
+  stroke-width: 0.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.45;
+}
+
+.map-dot {
+  fill: var(--accent);
+}
+
+.map-flight {
+  fill: var(--radar-ink);
+  font-size: 2.6px;
+  font-weight: 700;
+}
+
+[data-map-plane].low .map-dot {
+  fill: var(--danger);
+}
+
+[data-map-plane][data-phase="emergency"] .map-dot {
+  fill: var(--danger);
+  animation: flash 0.7s steps(1) infinite;
+}
+
+.map-hint {
+  margin: 0.6rem 0 0;
+  max-width: 42rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
 }
 
 /* ---- panel ---------------------------------------------------------- */
@@ -407,6 +539,10 @@ button:hover {
   }
 
   .plane[data-phase="holding"] {
+    animation: none;
+  }
+
+  [data-map-plane][data-phase="emergency"] .map-dot {
     animation: none;
   }
 }
