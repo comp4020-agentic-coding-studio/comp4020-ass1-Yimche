@@ -77,7 +77,10 @@ body {
   left: 18px;
   z-index: 30;
   padding: 14px 18px;
-  min-width: 170px;
+
+  /* fixed width: the readout holds one size for every year and era rather than
+     reflowing as their text lengths change on scroll */
+  width: 190px;
   border-radius: 12px;
   background: color-mix(in srgb, var(--hud-bg) 92%, transparent);
   color: var(--hud-ink);
@@ -110,6 +113,10 @@ body {
   font-size: 2rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+
+  /* equal-width digits so the year doesn't shift within the fixed-width box as
+     one digit swaps for another on scroll */
+  font-variant-numeric: tabular-nums;
 }
 
 .hud-era {
@@ -356,6 +363,10 @@ body {
   display: flex;
   align-items: center;
   padding: 0 6px;
+
+  /* the band ignores the pointer (so bars stay hoverable through it), but each
+     head takes it back so hovering a column name expands it directly */
+  pointer-events: auto;
   border-left: 1px solid var(--line);
   background: color-mix(in srgb, var(--paper) 82%, transparent);
 
@@ -406,14 +417,17 @@ body {
   --civ-color: var(--r-andes);
 }
 
-/* while a civilisation in this group is focused, main.ts flags its head so the
-   name shows in full, on a chip lifted above the neighbouring columns */
-.group-head.is-active {
+/* the name shows in full, on a chip lifted above the neighbouring columns,
+   whenever the head is hovered directly or main.ts flags it because a
+   civilisation in this group is focused */
+.group-head.is-active,
+.group-head:hover {
   z-index: 9;
   overflow: visible;
 }
 
-.group-head.is-active .group-head-name {
+.group-head.is-active .group-head-name,
+.group-head:hover .group-head-name {
   overflow: visible;
   padding: 3px 8px;
   border-radius: 5px;
@@ -981,7 +995,7 @@ body {
     top: calc(var(--head-h) + 10px);
     left: 12px;
     padding: 10px 14px;
-    min-width: 138px;
+    width: 172px;
   }
 
   .hud-year {
