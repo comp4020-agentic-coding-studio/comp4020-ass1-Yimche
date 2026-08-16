@@ -57,6 +57,17 @@ describe("timeline page: where and how they relate", () => {
     expect(doc.querySelector(".connectors"), ".connectors overlay is missing").toBeTruthy();
   });
 
+  it("ships a node layer the birth-year medallions draw into", () => {
+    expect(doc.querySelector(".nodes"), ".nodes layer is missing").toBeTruthy();
+  });
+
+  it("authors an architecture icon for every civilisation", () => {
+    for (const c of CIVILISATIONS) {
+      const symbol = doc.querySelector(`symbol#arch-${c.id}`);
+      expect(symbol, `arch icon symbol#arch-${c.id} is missing`).toBeTruthy();
+    }
+  });
+
   it("gives the detail popup a relations section", () => {
     expect(doc.querySelector("#popup-relations"), "#popup-relations is missing").toBeTruthy();
   });
