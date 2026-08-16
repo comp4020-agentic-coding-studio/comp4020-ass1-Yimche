@@ -2,7 +2,7 @@
 // timeline.ts as a pure model; the civilisation facts live in the dataset. This
 // file turns scroll position into the live year readout, reveals bars as they
 // enter view, and fills the detail popup on demand.
-import { CIVILISATIONS, type RelationKind } from "../data/civilisations";
+import { CIVILISATIONS, iconFor, type RelationKind } from "../data/civilisations";
 import { connectorPath, relationsOf, type ResolvedRelation } from "./geo";
 import { eraFor, formatYear, TIMELINE_HEIGHT, yToYear } from "./timeline";
 
@@ -82,6 +82,9 @@ const nodesLayer = document.querySelector<HTMLElement>(".nodes");
 const civBars = Array.from(document.querySelectorAll<HTMLElement>(".civ[data-civ]"));
 const mapPins = Array.from(document.querySelectorAll<SVGElement>(".map-pin[data-civ]"));
 const barById = new Map(civBars.map((b) => [b.dataset.civ ?? "", b]));
+// Each medallion carries its group's architecture icon (or a per-civ override),
+// so civs in the same group share an emblem; see iconFor in the data module.
+const iconById = new Map(CIVILISATIONS.map((c) => [c.id, iconFor(c)]));
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 let shownId: string | null = null; // the civ currently lit
@@ -118,7 +121,8 @@ const drawConnectors = (id: string, related: Map<string, RelationKind>): void =>
     node.className = `civ-node civ-node-${state}`;
     node.style.left = `${p.x}px`;
     node.style.top = `${p.y}px`;
-    node.innerHTML = `<svg viewBox="0 0 24 24"><use href="#arch-${civId}"></use></svg>`;
+    const icon = iconById.get(civId) ?? civId;
+    node.innerHTML = `<svg viewBox="0 0 24 24"><use href="#arch-${icon}"></use></svg>`;
     nodesLayer.appendChild(node);
   };
   const a = origin(from);

@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
 import { beforeAll, describe, expect, it } from "vitest";
-import { CIVILISATIONS } from "../src/data/civilisations";
+import { CIVILISATIONS, iconFor } from "../src/data/civilisations";
 
 // Contract for the built page's interactive shell. The scale, eras and lane
 // packing are covered by timeline.test.ts against the pure model; this checks
@@ -61,10 +61,11 @@ describe("timeline page: where and how they relate", () => {
     expect(doc.querySelector(".nodes"), ".nodes layer is missing").toBeTruthy();
   });
 
-  it("authors an architecture icon for every civilisation", () => {
+  it("authors the architecture icon every civilisation resolves to", () => {
     for (const c of CIVILISATIONS) {
-      const symbol = doc.querySelector(`symbol#arch-${c.id}`);
-      expect(symbol, `arch icon symbol#arch-${c.id} is missing`).toBeTruthy();
+      const icon = iconFor(c);
+      const symbol = doc.querySelector(`symbol#arch-${icon}`);
+      expect(symbol, `arch icon symbol#arch-${icon} for ${c.id} is missing`).toBeTruthy();
     }
   });
 
