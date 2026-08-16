@@ -7,9 +7,11 @@ sits. The links go straight to the commits that carry the evidence.
 
 An interactive explainer built on one idea: the great civilisations did not run
 one after another. You scroll down a single axis spanning roughly five and a
-half thousand years, from 3500 BCE to now, and twenty-two civilisations run past
-as parallel bars in packed lanes, so their overlaps are the first thing you see.
-A fixed readout names the year and era as you descend. Behind the bars sits a
+half thousand years, from 3500 BCE to now, and sixty civilisations run past as
+parallel bars, packed into labelled column-groups finer than their region, so
+their overlaps are the first thing you see. A sticky header row names each group
+as you scroll it into view. A fixed readout names the year and era as you
+descend. Behind the bars sits a
 faint world map, and focusing any civilisation (hover, keyboard focus, or opening
 its popup) lights its place on that map and branches from its birth-year node to
 the birth-year nodes of the civilisations it grew from, gave rise to, influenced,
@@ -78,8 +80,24 @@ engage it. The map is hand-authored coarse coastlines run through the same
 projection the pins and tests use, so it is licence-clean and its geometry is
 verified by the same model, not eyeballed.
 
+**Breaking the lanes into groups without touching the geometry.** Asked to make
+the chart denser and broken into smaller groups, I generalised the model rather
+than special-casing the view. A new contract went in red first: groups form an
+ordered, same-region-contiguous list, and lane packing returns bands that tile
+the lanes with no overlap and cover every civilisation.
+[`7314923`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/7314923)
+Making it green meant one change to the pure model, packing each group into its
+own disjoint lane range under a sticky, region-tinted header, with colour still
+keyed to region so the palette and the geography tests never moved.
+[`b9c8c65`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/b9c8c65)
+The medallions became group-keyed off the same field,
+[`03d54f9`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/03d54f9)
+so growing the set from twenty-two to sixty civilisations was then a pure data
+commit against contracts that already generalised, and it landed green.
+[`bb61c25`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/bb61c25)
+
 ## Before you ship
 
-`pnpm check` is green (54 tests) and `pnpm check:evidence` resolves every
+`pnpm check` is green (63 tests) and `pnpm check:evidence` resolves every
 citation above. The deployed page is verified live at 1920×1080 and 390×844,
 including the focus highlight, the relation links, and keyboard open-and-close.

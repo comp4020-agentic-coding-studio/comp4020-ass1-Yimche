@@ -50,16 +50,19 @@ back it with a `spec/*.test.ts`. If you can't write the test, the interaction
 isn't defined yet.
 
 - **Interaction:** Scrolling down the ~5,500-year axis drives a live year/era
-  readout; focusing a civilisation (hover, keyboard focus, or opening its popup)
-  lights its place on the faint world map and branches from its birth-year node
-  to the birth-year nodes of the civilisations it relates to, each node a
-  circular medallion carrying that civilisation's architecture, dimming the rest.
+  readout, past sixty civilisations packed into labelled, region-tinted
+  column-groups; focusing a civilisation (hover, keyboard focus, or opening its
+  popup) lights its place on the faint world map and branches from its
+  birth-year node to the birth-year nodes of the civilisations it relates to,
+  each node a circular medallion carrying its group's architecture, dimming the
+  rest.
 - **Testable claim:** The built page renders one focusable bar and one map pin
   per civilisation, a connector overlay, a birth-year node layer, an
   architecture icon per civilisation, and a popup relations section; the pure
-  model projects every civilisation inside the map bounds and resolves each
-  one's relations both ways (`spec/interaction.test.ts`, `spec/geo.test.ts`,
-  `spec/timeline.test.ts`).
+  model packs the civilisations into disjoint group bands that tile the lanes,
+  projects every civilisation inside the map bounds, and resolves each one's
+  relations both ways (`spec/interaction.test.ts`, `spec/geo.test.ts`,
+  `spec/timeline.test.ts`, `spec/grouping.test.ts`).
 
 Keep this line and its test in sync with what the page actually does. A passing
 test that describes an old behaviour is a lie in the harness.
@@ -168,3 +171,10 @@ time. Seed rules:
   operating harness. Detailed rules live here and only here. When they overlap,
   `CLAUDE.md` keeps the high-level version and this file keeps the detail, so
   the two can't drift.
+- **Generalise the model before scaling the data.** When a change asks for
+  "more and finer" (grouping the lanes, then growing 22 civilisations to 60),
+  push the new structure through the pure model and its contract first, keep
+  colour keyed to the unchanged region set, and land the bulk data last against
+  contracts that already generalised. The big data commit then stays green
+  because nothing about its shape is new, and the geography/region tests never
+  move.
