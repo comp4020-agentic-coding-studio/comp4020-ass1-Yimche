@@ -78,6 +78,7 @@ if (reduceMotion || !("IntersectionObserver" in window)) {
 // its pin on the map, draws connectors to the civilisations it relates to, and
 // dims the rest. The relations come from the same pure model the popup uses.
 const connectors = document.querySelector<SVGSVGElement>(".connectors");
+const nodesLayer = document.querySelector<HTMLElement>(".nodes");
 const civBars = Array.from(document.querySelectorAll<HTMLElement>(".civ[data-civ]"));
 const mapPins = Array.from(document.querySelectorAll<SVGElement>(".map-pin[data-civ]"));
 const barById = new Map(civBars.map((b) => [b.dataset.civ ?? "", b]));
@@ -97,23 +98,40 @@ const relatedKinds = (id: string): Map<string, RelationKind> => {
 const drawConnectors = (id: string, related: Map<string, RelationKind>): void => {
   if (!connectors || !timelineEl) return;
   connectors.replaceChildren();
+  nodesLayer?.replaceChildren();
   const from = barById.get(id);
   if (!from) return;
   const tl = timelineEl.getBoundingClientRect();
   connectors.setAttribute("viewBox", `0 0 ${tl.width} ${TIMELINE_HEIGHT}`);
-  const centre = (el: HTMLElement): { x: number; y: number } => {
+  // A bar spans its whole life, so its centre is often scrolled off-screen.
+  // Anchor branches to the birth point instead: horizontally centred, at the
+  // bar's start (top) edge. Branches then read as a lineage between births.
+  const origin = (el: HTMLElement): { x: number; y: number } => {
     const r = el.getBoundingClientRect();
-    return { x: r.left - tl.left + r.width / 2, y: r.top - tl.top + r.height / 2 };
+    return { x: r.left - tl.left + r.width / 2, y: r.top - tl.top };
   };
-  const a = centre(from);
+  // a circular medallion carrying the civ's architecture, sat on its birth point
+  const medallion = (el: HTMLElement, civId: string, state: string): void => {
+    if (!nodesLayer) return;
+    const p = origin(el);
+    const node = document.createElement("div");
+    node.className = `civ-node civ-node-${state}`;
+    node.style.left = `${p.x}px`;
+    node.style.top = `${p.y}px`;
+    node.innerHTML = `<svg viewBox="0 0 24 24"><use href="#arch-${civId}"></use></svg>`;
+    nodesLayer.appendChild(node);
+  };
+  const a = origin(from);
   for (const [rid, kind] of related) {
     const to = barById.get(rid);
     if (!to) continue;
     const path = document.createElementNS(SVG_NS, "path");
-    path.setAttribute("d", connectorPath(a, centre(to)));
+    path.setAttribute("d", connectorPath(a, origin(to)));
     path.setAttribute("class", `connector connector-${kind}`);
     connectors.appendChild(path);
+    medallion(to, rid, kind);
   }
+  medallion(from, id, "active"); // the focused civ's node sits on top
 };
 
 const light = (id: string): void => {
@@ -137,6 +155,7 @@ const clearLight = (): void => {
   for (const b of civBars) b.classList.remove("active", "related", "dimmed");
   for (const p of mapPins) p.classList.remove("active", "related");
   connectors?.replaceChildren();
+  nodesLayer?.replaceChildren();
   shownId = null;
 };
 

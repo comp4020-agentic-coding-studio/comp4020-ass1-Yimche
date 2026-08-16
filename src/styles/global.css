@@ -331,6 +331,55 @@ body {
   stroke-linecap: round;
 }
 
+/* birth-year medallions: circular nodes carrying each civilisation's signature
+   architecture, drawn on focus at the top (start) of its bar. Position is set
+   in px by main.ts; only the focused civ and its relatives are shown, so the
+   idle timeline stays calm. The ring colour echoes the branch it caps. */
+.nodes {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.civ-node {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  overflow: hidden;
+  color: var(--ink);
+  background: var(--paper);
+  border: 2px solid var(--ink-soft);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgb(0 0 0 / 30%);
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s ease;
+}
+
+.civ-node svg {
+  width: 62%;
+  height: 62%;
+}
+
+.civ-node-successor {
+  border-color: var(--hud-bg);
+}
+
+.civ-node-influence {
+  border-color: var(--accent);
+}
+
+.civ-node-rival {
+  border-color: #c0392b;
+}
+
+.civ-node-active {
+  border-color: var(--accent);
+  transform: translate(-50%, -50%) scale(1.14);
+}
+
 /* one civilisation */
 .civ {
   position: absolute;
@@ -657,8 +706,16 @@ body {
   .hero-hint,
   .hud-progress-fill,
   .map-pin circle,
-  .map-pin-label {
+  .map-pin-label,
+  .civ-node {
     transition: none;
     animation: none;
+  }
+}
+
+@media (width <= 640px) {
+  .civ-node {
+    width: 38px;
+    height: 38px;
   }
 }
