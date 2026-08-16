@@ -46,6 +46,22 @@ describe("timeline page: the scrollable shell", () => {
   });
 });
 
+describe("timeline page: where and how they relate", () => {
+  it("ships a faint world map with one pin per civilisation", () => {
+    expect(doc.querySelector(".worldmap"), ".worldmap backdrop is missing").toBeTruthy();
+    const pins = doc.querySelectorAll(".map-pin[data-civ]");
+    expect(pins.length, "one .map-pin[data-civ] per civilisation").toBe(CIVILISATIONS.length);
+  });
+
+  it("ships a connector overlay for relation branching", () => {
+    expect(doc.querySelector(".connectors"), ".connectors overlay is missing").toBeTruthy();
+  });
+
+  it("gives the detail popup a relations section", () => {
+    expect(doc.querySelector("#popup-relations"), "#popup-relations is missing").toBeTruthy();
+  });
+});
+
 describe("timeline page: keyboard/a11y floor", () => {
   it("every button has an accessible name", () => {
     for (const btn of doc.querySelectorAll("button")) {
