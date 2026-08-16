@@ -11,9 +11,11 @@ half thousand years, from 3500 BCE to now, and twenty-two civilisations run past
 as parallel bars in packed lanes, so their overlaps are the first thing you see.
 A fixed readout names the year and era as you descend. Behind the bars sits a
 faint world map, and focusing any civilisation (hover, keyboard focus, or opening
-its popup) lights its place on that map and draws connectors to the
-civilisations it grew from, gave rise to, influenced, or fought, dimming the
-rest. The page answers three questions at once: when, where, and how they relate.
+its popup) lights its place on that map and branches from its birth-year node to
+the birth-year nodes of the civilisations it grew from, gave rise to, influenced,
+or fought, dimming the rest. Each node is a circular medallion carrying that
+civilisation's architecture. The page answers three questions at once: when,
+where, and how they relate.
 
 ## The moments that mattered
 
@@ -66,6 +68,11 @@ self-authored world map so you can see where each civilisation developed,
 and relation connectors that branch from a focused civilisation to the ones it
 is tied to.
 [`e3a16e0`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/e3a16e0)
+Testing on the page showed those branches diving into the centre of a tall bar,
+which for a long-lived civilisation scrolls off-screen, so I re-anchored them to
+each civilisation's birth-year node and made every node a circular medallion
+carrying its architecture, drawn on focus.
+[`80c63d7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/80c63d7)
 Both hang off one gesture, focus, so the page stays a calm timeline until you
 engage it. The map is hand-authored coarse coastlines run through the same
 projection the pins and tests use, so it is licence-clean and its geometry is
@@ -73,6 +80,6 @@ verified by the same model, not eyeballed.
 
 ## Before you ship
 
-`pnpm check` is green (52 tests) and `pnpm check:evidence` resolves every
+`pnpm check` is green (54 tests) and `pnpm check:evidence` resolves every
 citation above. The deployed page is verified live at 1920×1080 and 390×844,
 including the focus highlight, the relation links, and keyboard open-and-close.

@@ -51,10 +51,12 @@ isn't defined yet.
 
 - **Interaction:** Scrolling down the ~5,500-year axis drives a live year/era
   readout; focusing a civilisation (hover, keyboard focus, or opening its popup)
-  lights its place on the faint world map and draws connectors to the
-  civilisations it relates to, dimming the rest.
+  lights its place on the faint world map and branches from its birth-year node
+  to the birth-year nodes of the civilisations it relates to, each node a
+  circular medallion carrying that civilisation's architecture, dimming the rest.
 - **Testable claim:** The built page renders one focusable bar and one map pin
-  per civilisation, a connector overlay, and a popup relations section; the pure
+  per civilisation, a connector overlay, a birth-year node layer, an
+  architecture icon per civilisation, and a popup relations section; the pure
   model projects every civilisation inside the map bounds and resolves each
   one's relations both ways (`spec/interaction.test.ts`, `spec/geo.test.ts`,
   `spec/timeline.test.ts`).
