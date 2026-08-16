@@ -2,11 +2,8 @@
 // arrivals burn fuel, and a runway stays locked for a separation gap after a
 // clearance. This module is pure (no DOM, no timers) so the core interaction
 // can be unit-tested without a browser; main.ts is the only place that touches
-// the document.
-//
-// STUB: signatures and types are final, behaviour is deliberately absent so the
-// contract test in spec/sequencer.test.ts is red. The next commit fills these
-// in. See AGENTS.md on why the red is committed on its own.
+// the document. Every function returns a fresh state and never mutates its
+// input, so the render layer can diff old against new.
 
 export type PlaneKind = "arrival" | "departure";
 
@@ -74,26 +71,91 @@ export function createInitialState(): SimState {
   };
 }
 
-// STUB — returns the state untouched.
-export function tick(state: SimState, _dtMs: number): SimState {
-  return state;
+// Advance the world by dtMs. Holding arrivals burn fuel (and tip into an
+// emergency at empty); a plane whose runway's separation gap has elapsed
+// completes (arrival taxis to a gate, departure gets airborne) and releases
+// the runway.
+export function tick(state: SimState, dtMs: number): SimState {
+  const t = state.t + dtMs;
+  const burn = (dtMs / 1000) * FUEL_BURN_PER_SEC;
+
+  const planes = state.planes.map((plane) => {
+    if (plane.phase === "holding" && plane.kind === "arrival") {
+      const fuel = plane.fuel - burn;
+      if (fuel <= 0) return { ...plane, fuel: 0, phase: "emergency" as const };
+      return { ...plane, fuel };
+    }
+    if (plane.phase === "runway" && plane.runwayId) {
+      const runway = state.runways.find((r) => r.id === plane.runwayId);
+      if (runway && runway.busyUntil <= t) {
+        const landed = plane.kind === "arrival";
+        return {
+          ...plane,
+          phase: landed ? ("gate" as const) : ("departed" as const),
+          runwayId: null,
+        };
+      }
+    }
+    return plane;
+  });
+
+  return { t, planes, runways: state.runways.map((r) => ({ ...r })) };
 }
 
-// STUB — accepts every clearance without moving anything.
+// Try to put a plane on a runway. Fails if the plane can't be cleared right now
+// or the runway is still inside its separation gap; the scarce resource is what
+// makes the sequencing a real decision.
 export function clear(
   state: SimState,
-  _planeId: string,
-  _runwayId: string,
+  planeId: string,
+  runwayId: string,
 ): ClearResult {
-  return { ok: true, state };
+  const plane = state.planes.find((p) => p.id === planeId);
+  if (!plane) return { ok: false, reason: `no plane ${planeId}` };
+  if (!isClearable(plane))
+    return { ok: false, reason: `${plane.flight} is not waiting for a runway` };
+
+  const runway = state.runways.find((r) => r.id === runwayId);
+  if (!runway) return { ok: false, reason: `no runway ${runwayId}` };
+  if (!isRunwayFree(runway, state.t))
+    return { ok: false, reason: `runway ${runwayId} still occupied` };
+
+  return {
+    ok: true,
+    state: {
+      t: state.t,
+      planes: state.planes.map((p) =>
+        p.id === planeId
+          ? { ...p, phase: "runway" as const, runwayId }
+          : { ...p },
+      ),
+      runways: state.runways.map((r) =>
+        r.id === runwayId ? { ...r, busyUntil: state.t + SEPARATION_MS } : { ...r },
+      ),
+    },
+  };
 }
 
-// STUB — returns the state untouched.
-export function addPlane(state: SimState, _plane?: Partial<Plane>): SimState {
-  return state;
+let nextId = 0;
+const ARRIVALS = ["QF", "VA", "JQ", "NZ", "SQ", "EK", "UA", "CX"];
+
+// Add a plane. Defaults to a fresh holding arrival with a full tank; callers can
+// override any field (e.g. to add a departure at a gate).
+export function addPlane(state: SimState, plane?: Partial<Plane>): SimState {
+  nextId += 1;
+  const flight = `${ARRIVALS[nextId % ARRIVALS.length]}${10 + nextId}`;
+  const added: Plane = {
+    id: `p-${Date.now()}-${nextId}`,
+    flight,
+    kind: "arrival",
+    phase: "holding",
+    fuel: START_FUEL,
+    runwayId: null,
+    ...plane,
+  };
+  return { ...state, planes: [...state.planes, added] };
 }
 
-// STUB — returns the state untouched.
-export function removePlane(state: SimState, _planeId: string): SimState {
-  return state;
+export function removePlane(state: SimState, planeId: string): SimState {
+  return { ...state, planes: state.planes.filter((p) => p.id !== planeId) };
 }
