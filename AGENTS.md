@@ -86,7 +86,12 @@ test that describes an old behaviour is a lie in the harness.
 3. Before every push, run **`pnpm check`** (typecheck → build → lint → spec).
    For links, run `pnpm dlx linkinator ./dist --silent` against a fresh
    `pnpm build`.
-4. **Commit when the checks pass. Never commit a red state.** Small, frequent
+4. **Commit when the checks pass. Never commit a red state** — with one
+   deliberate exception: a *new spec test that encodes a contract not yet
+   built* may be committed red, on its own, because the red→green transition is
+   the process evidence the course reads (see the harness log). The rule
+   protects the build, typecheck, lint, existing contracts, and the branch tip
+   at ship time; it does not forbid intentional test-first reds. Small, frequent
    commits — the trail is the evidence.
 5. Ship with time for CI to finish. "Still running" counts as not green at the
    cutoff.
@@ -134,6 +139,13 @@ you correct the work at the harness level, record the rule here so it holds next
 time. Seed rules:
 
 - Never use emdashes, "--" or any other AI-isms.
+- **Test-first reds are allowed to be committed; nothing else red is.** The
+  course wants the red→green of a spec test visible in history, but the branch
+  tip must be green at the cutoff and CI must not be left red. So a new
+  `spec/*.test.ts` that encodes a not-yet-built contract may be committed on its
+  own while failing; the very next commits turn it green. This is the only red a
+  commit may carry, and it never applies to the build, typecheck, lint, or an
+  existing contract. (Reconciles the course `start` skill with step 4 above.)
 - **Keep the harness in the repo, not in `~/.claude/`.** Config, skills,
   settings, and self-edits belong in this repo (`CLAUDE.md`, `AGENTS.md`,
   `.claude/`, `spec/`). Two reasons that both bite: the harness is process
