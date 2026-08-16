@@ -2,16 +2,19 @@
 
 ## What was the breakthrough that moved the work forward?
 
-Deciding that the runway model had to be a pure function before a single pixel
-was drawn. I started wanting three views, and the pull was to build the prettiest
-one first and bolt logic onto it. The breakthrough was inverting that: write the
-sequencing rules as failing tests, make them pass, and only then draw. Once the
-model was a tested thing in its own right, the three views stopped being three
-features and became three ways of reading the same state. The map and the
-inside-ATC screen cost almost nothing because neither needed to touch the logic —
-they just render it. The one idea I most wanted to land, *who goes next and why*,
-turned out to be a five-line ranking function I could test directly and then let
-the ATC view narrate.
+Realising I had built the wrong thing well, and cutting it. I started by
+inverting the obvious order — writing the runway rules as failing tests and
+making them pass before drawing a pixel — and that discipline was real: a full
+simulation with three views and a five-line ranking function for *who goes next
+and why*, each view just a redraw of one tested model. But looking at it beside
+the plain diagrammatic explainer I was measuring against, it was heavier than
+the brief needed and harder to read. The breakthrough was letting that go:
+replacing the simulation with a short scripted choreography, dropping the map
+and the manual controls, and rebuilding the page as one immersive scene where
+popups do the explaining. The model-first habit carried straight over — the
+choreography is again pure data the view only renders — but the lesson that
+moved the work forward was that removing working code to answer a critique is
+harder, and more valuable, than writing more of it.
 
 ## What did this work change about who I want to be as a software developer?
 
