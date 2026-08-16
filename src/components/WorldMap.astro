@@ -1,0 +1,94 @@
+---
+// The faint world-map backdrop. The land is hand-authored as coarse continent
+// outlines in real longitude/latitude, then run through the same project() the
+// tests use, so it is CC0 by construction (no external map, no CDN) and its
+// projection is exactly the one the civilisation pins are placed with. One pin
+// per civilisation sits at its heartland; both land and pins share this SVG's
+// viewBox, so they stay aligned at any viewport aspect.
+import { CIVILISATIONS } from "../data/civilisations";
+import { project } from "../scripts/geo";
+
+const W = 360;
+const H = 180;
+
+// Continent silhouettes as [lon, lat] rings. Deliberately coarse: this is a
+// watermark to read place at a glance, not an atlas.
+const LAND: [number, number][][] = [
+  // North America
+  [
+    [-166, 66], [-156, 71], [-125, 70], [-95, 72], [-63, 67], [-56, 53],
+    [-66, 45], [-70, 41], [-75, 35], [-81, 25], [-90, 29], [-97, 26],
+    [-107, 23], [-110, 30], [-118, 33], [-124, 40], [-124, 48], [-132, 55],
+    [-150, 59], [-165, 60],
+  ],
+  // South America
+  [
+    [-77, 8], [-60, 11], [-50, 0], [-35, -5], [-39, -13], [-48, -25],
+    [-58, -34], [-65, -41], [-74, -44], [-75, -52], [-69, -55], [-71, -42],
+    [-71, -30], [-72, -18], [-79, -6], [-81, -3], [-78, 2],
+  ],
+  // Africa
+  [
+    [-16, 15], [-16, 25], [-6, 32], [10, 37], [24, 32], [33, 31], [35, 22],
+    [43, 11], [51, 12], [45, 5], [41, -4], [40, -16], [33, -26], [25, -34],
+    [18, -35], [12, -16], [9, -1], [3, 5], [-8, 4], [-16, 10],
+  ],
+  // Eurasia (Europe, the Near East, and Asia as one coarse mass)
+  [
+    [-10, 36], [-9, 44], [0, 49], [5, 53], [8, 57], [5, 62], [12, 66],
+    [26, 71], [40, 68], [55, 70], [70, 72], [95, 76], [120, 74], [145, 72],
+    [168, 70], [180, 66], [178, 62], [160, 61], [150, 59], [143, 50],
+    [135, 44], [128, 40], [122, 32], [121, 25], [110, 20], [106, 10],
+    [100, 6], [98, 14], [92, 22], [89, 22], [83, 17], [80, 9], [76, 8],
+    [72, 20], [66, 25], [57, 25], [50, 30], [42, 30], [36, 36], [28, 36],
+    [26, 41], [18, 42], [12, 44], [6, 43], [-2, 36],
+  ],
+  // Australia
+  [
+    [113, -22], [122, -18], [130, -12], [137, -12], [142, -11], [146, -18],
+    [150, -25], [153, -28], [150, -38], [143, -39], [135, -35], [129, -32],
+    [123, -34], [115, -34], [114, -28],
+  ],
+];
+
+const ring = (poly: [number, number][]): string =>
+  poly
+    .map(([lon, lat]) => {
+      const p = project(lat, lon, W, H);
+      return `${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+    })
+    .join(" ");
+
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+const pins = CIVILISATIONS.map((c) => ({
+  id: c.id,
+  region: slug(c.region),
+  name: c.name,
+  ...project(c.lat, c.lon, W, H),
+}));
+---
+
+<div class="worldmap" aria-hidden="true">
+  <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="xMidYMid meet">
+    <g class="worldmap-land">
+      {LAND.map((poly) => <polygon points={ring(poly)} />)}
+    </g>
+    <g class="worldmap-pins">
+      {
+        pins.map((p) => (
+          <g class="map-pin" data-civ={p.id} data-region={p.region}>
+            <circle cx={p.x.toFixed(1)} cy={p.y.toFixed(1)} r="1.6" />
+            <text class="map-pin-label" x={(p.x + 3).toFixed(1)} y={(p.y + 1).toFixed(1)}>
+              {p.name}
+            </text>
+          </g>
+        ))
+      }
+    </g>
+  </svg>
+</div>

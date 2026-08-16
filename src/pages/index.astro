@@ -1,5 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import WorldMap from "../components/WorldMap.astro";
 import {
   eraBands,
   eraMarks,
@@ -27,6 +28,9 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
 ---
 
 <Layout title="How did we get here?">
+  <!-- faint world-map backdrop: where each civilisation developed -->
+  <WorldMap />
+
   <nav class="site-nav" aria-label="Site">
     <a href="#timeline">Skip to the timeline</a>
   </nav>
