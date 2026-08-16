@@ -6,134 +6,63 @@ sits. The links go straight to the commits that carry the evidence.
 ## What I built
 
 An interactive explainer built on one idea: the great civilisations did not run
-one after another. You scroll down a single axis spanning roughly five and a
-half thousand years, from 3500 BCE to now, and sixty civilisations run past as
-parallel bars, packed into labelled column-groups finer than their region, so
-their overlaps are the first thing you see. A sticky header row names each group
-as you scroll it into view. A fixed readout names the year and era as you
-descend, staying out of sight until the first scroll gives it a year. Every bar
-carries an architecture emblem that rides the top of its visible span, so the
-icon stays in view however far a long-lived civilisation scrolls. Behind the
-bars sits a faint world map, and focusing any civilisation (hover, keyboard
-focus, or opening its popup) lights its place on that map, floats its name and
-dates under the cursor, and branches from its emblem to the emblems of the
-civilisations it grew from, gave rise to, influenced, or fought, dimming the
-rest. The page answers three questions at once: when, where, and how they
-relate.
+one after another. You scroll down a single axis from 3500 BCE to now, and sixty
+civilisations run past as parallel bars packed into labelled column-groups, so
+their overlaps are the first thing you see. Focusing any civilisation lights its
+place on a faint world map and branches from its emblem to the ones it grew from,
+gave rise to, influenced, or fought. The page answers when, where, and how they
+relate, all on one gesture.
 
 ## The moments that mattered
 
-**A pure model before any pixels.** The first thing I built on the original
-project was not a screen but a DOM-free module with its core-interaction contract
-written as failing tests first, then made to pass. Writing the contract before
-the code is what told me the mechanics were right independently of any view.
-[`eedd1d6...02c8617`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/compare/eedd1d6...02c8617)
-That habit is the through-line: the timeline is again a pure model plus pure
-derivation with the view as a thin render, first for the scale and lane packing,
-[`5f70689`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/5f70689)
-then for the map projection and relation graph.
-[`712f420`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/712f420)
-
-**A contradiction in the harness, fixed in the harness.** My `AGENTS.md` said
-"never commit a red state", but the course wants the red-to-green history as
-process evidence, and I needed to commit a failing spec test first. I added a
-documented carve-out instead of re-prompting around it: test-first reds may be
-committed on their own, nothing else red may.
-[`aff9bff`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/aff9bff)
-It earned its keep on the timeline twice, once for the scale-and-lanes contract
-and once for the geography-and-relations contract, each committed red on purpose
-and turned green by the very next commits.
-[`53910f2`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/53910f2),
-[`dc5cd75`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/dc5cd75)
-
-**Wiring the sensor the roster was missing.** `pnpm check` runs typecheck,
-build, oxlint, stylelint and vitest, but nothing watched accessibility. I added
-a JSDOM contract against the built page: every control is a real `<button>` with
-an accessible name, and no clicks are wired onto non-interactive elements. It
-still guards the shipped page, and it grew with it: the same check now covers the
-civilisation bars and the clickable relation links in the popup.
-[`7d3acd4`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/7d3acd4)
-
-**Cutting a finished prototype to answer the brief.** The original build was a
-complete, working ATC explainer: a tested runway-sequencing model, an immersive
-scripted scene, gate and tower and plane popups, a committed light palette. I
-judged it a well-made answer to a weaker question, and started over on a topic
-with more reach. Removing a whole shipped prototype was the harder call than
-adding to it, and the commit that does it is the pivot the rest of the work hangs
-from.
+**Cutting a finished prototype to answer the brief.** The first build was a
+complete, working air-traffic-control explainer: a tested sequencing model, a
+scripted scene, gate and tower popups. I judged it a well-made answer to a
+narrow question and started over on one with more reach. Removing a whole shipped
+prototype was the harder call than adding to it, and it is the pivot the rest of
+the work hangs from.
 [`0ea78f7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/0ea78f7)
 
-**Layering where and how onto when, as one interaction.** The scrollable
+**Corrections that landed in the harness, not the prompt.** My `AGENTS.md` said
+"never commit a red state", but the course wants the red-to-green history as
+evidence. Rather than re-prompt around it, I added a documented carve-out: a
+test-first red may be committed on its own, nothing else.
+[`aff9bff`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/aff9bff)
+It paid for itself on the timeline twice, each contract committed red on purpose
+and green the very next commit.
+[`53910f2`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/53910f2),
+[`dc5cd75`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/dc5cd75)
+The same instinct made me wire the accessibility check the sensor roster was
+missing instead of promising to remember it.
+[`7d3acd4`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/7d3acd4)
+
+**Layering where and how onto when, corrected against the render.** The scrollable
 timeline answered "when".
 [`9354edf`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/9354edf)
-On feedback I added two more dimensions rather than two more widgets: a faint,
-self-authored world map so you can see where each civilisation developed,
+On feedback I added two dimensions rather than two widgets: a self-authored world
+map for "where",
 [`f04a19b`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/f04a19b)
-and relation connectors that branch from a focused civilisation to the ones it
-is tied to.
+and relation connectors for "how".
 [`e3a16e0`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/e3a16e0)
-Testing on the page showed those branches diving into the centre of a tall bar,
-which for a long-lived civilisation scrolls off-screen, so I re-anchored them to
-each civilisation's birth-year node and made every node a circular medallion
-carrying its architecture, drawn on focus.
+Watching the real page showed those branches diving into the centre of a tall bar
+that scrolls off-screen, so I re-anchored them to each civilisation's birth-year
+medallion, a thing only visible by scrolling and hovering myself.
 [`80c63d7`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/80c63d7)
-Both hang off one gesture, focus, so the page stays a calm timeline until you
-engage it. The map is hand-authored coarse coastlines run through the same
-projection the pins and tests use, so it is licence-clean and its geometry is
-verified by the same model, not eyeballed.
 
-**Breaking the lanes into groups without touching the geometry.** Asked to make
-the chart denser and broken into smaller groups, I generalised the model rather
-than special-casing the view. A new contract went in red first: groups form an
-ordered, same-region-contiguous list, and lane packing returns bands that tile
-the lanes with no overlap and cover every civilisation.
-[`7314923`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/7314923)
-Making it green meant one change to the pure model, packing each group into its
-own disjoint lane range under a sticky, region-tinted header, with colour still
-keyed to region so the palette and the geography tests never moved.
-[`b9c8c65`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/b9c8c65)
-The medallions became group-keyed off the same field,
-[`03d54f9`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/03d54f9)
-so growing the set from twenty-two to sixty civilisations was then a pure data
-commit against contracts that already generalised, and it landed green.
-[`bb61c25`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/bb61c25)
-Sixty lanes then overflowed the two viewports the brief actually marks, so I
-measured the real page before choosing: at 1920 all thirty-two lanes fit if the
-inline labels give way, but at 390 they never will, though a single one-to-three
-lane group fits a phone comfortably. That split the fix by viewport rather than
-forcing one compromise on both. Desktop fits to width and moves the label to a
-chip revealed on focus,
+**Fitting the two viewports the brief marks, by measuring first.** Sixty lanes
+overflowed both marked viewports, so I measured the page before choosing: at 1920
+all lanes fit if the inline labels give way, but at 390 they never will, though a
+single group fits a phone. That split the fix by viewport rather than forcing one
+compromise. Desktop fits to width and moves the label to a chip on focus,
 [`a538c94`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/a538c94)
-while the phone keeps the wide canvas and pages across the groups with gentle
-snapping and a jump rail, its contract committed red first.
+while the phone pages across the groups with a jump rail, its contract committed
+red first.
 [`413dbeb`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/413dbeb),
 [`8429083`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/8429083)
-I confirmed both against the rendered page: 1920 carries no horizontal scrollbar
-and the focus label reads, and 390 snaps to group boundaries while the vertical
-scroll still drives the year.
-
-**Polish driven by watching the real page.** Looking at the built page turned up
-five small failures the model tests could never catch, so I fixed them against
-the render, not my mental picture of it. The sticky group header sat on top of
-the first bars and a hovered bar climbed over the header, so I offset every
-coordinate layer below a header band and lifted the legend above a hovered bar.
-[`9f2b395`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/9f2b395)
-The architecture emblems had only shown on focus and scrolled away with their
-bars, so I made every emblem always-on and sticky to the top of its visible
-span, re-anchoring the relation branches to those emblems so the lines join what
-you can actually see.
-[`21ac092`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/21ac092)
-Then the focus label moved out of the cramped column to float under the cursor,
-and the year readout was held back until the first scroll gives it a year to
-show.
-[`6851e42`](https://github.com/comp4020-agentic-coding-studio/comp4020-ass1-Yimche/commit/6851e42)
-Each one was a thing I could only see by scrolling and hovering the page myself.
 
 ## Before you ship
 
 `pnpm check` is green (66 tests) and `pnpm check:evidence` resolves every
-citation above. The deployed page is verified live at 1920×1080 and 390×844, both
-in full: desktop fits every lane with no horizontal scrollbar and floats the
-focus label under the cursor, the phone pages across the groups from the rail,
-and the always-on emblems, the relation links, and keyboard open-and-close all
-hold.
+citation above. I verified the built page at 1920×1080 and 390×844: desktop fits
+every lane with no horizontal scrollbar, the phone pages the groups from the
+rail, and keyboard open-and-close and a mid-interaction resize both hold.
