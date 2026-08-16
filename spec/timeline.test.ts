@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CIVILISATIONS, REGIONS, type Civilisation } from "../src/data/civilisations";
 import {
+  eraBands,
   eraFor,
   eraMarks,
   formatYear,
@@ -126,6 +127,35 @@ describe("packLanes", () => {
     const lb = r.packed.find((c) => c.id === "b")!.lane;
     expect(la).not.toBe(lb);
     expect(r.lanes).toBe(2);
+  });
+});
+
+describe("eraBands", () => {
+  const bands = eraBands();
+  const axisHeight = yearToY(TIMELINE.end);
+
+  it("covers the axis with named, ordered bands", () => {
+    expect(bands.length).toBeGreaterThanOrEqual(3);
+    for (const b of bands) {
+      expect(b.name.trim().length).toBeGreaterThan(0);
+      expect(b.height).toBeGreaterThan(0);
+    }
+    expect(bands[0]!.top).toBe(0);
+  });
+
+  it("tiles the axis contiguously with no gaps or overshoot", () => {
+    for (let i = 1; i < bands.length; i++) {
+      expect(bands[i]!.top).toBeCloseTo(bands[i - 1]!.top + bands[i - 1]!.height, 6);
+    }
+    const last = bands.at(-1)!;
+    expect(last.top + last.height).toBeCloseTo(axisHeight, 6);
+  });
+
+  it("agrees with eraFor at each band's midpoint", () => {
+    for (const b of bands) {
+      const midYear = yToYear(b.top + b.height / 2);
+      expect(eraFor(Math.round(midYear))).toBe(b.name);
+    }
   });
 });
 

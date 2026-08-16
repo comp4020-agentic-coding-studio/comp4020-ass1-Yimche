@@ -178,6 +178,37 @@ body {
   );
 }
 
+/* named era bands: faint labels reading down the gutter */
+.eras {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.era-band {
+  position: absolute;
+  left: 0;
+  width: var(--gutter);
+  border-top: 1px solid var(--line);
+}
+
+/* the label rides down the gutter, staying in view for the whole era */
+.era-band-name {
+  position: sticky;
+  top: 130px;
+  display: block;
+  padding: 8px 0;
+  writing-mode: vertical-rl;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-align: center;
+  color: color-mix(in srgb, var(--ink) 34%, transparent);
+}
+
 .marks {
   position: absolute;
   inset: 0;

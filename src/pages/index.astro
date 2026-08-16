@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import {
+  eraBands,
   eraMarks,
   formatYear,
   packLanes,
@@ -14,6 +15,7 @@ import {
 // only adds the live year readout, the reveal-on-scroll, and the detail popups.
 const { packed, lanes } = packLanes();
 const marks = eraMarks();
+const bands = eraBands();
 
 const slug = (s: string) =>
   s
@@ -57,6 +59,17 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
   </header>
 
   <main id="timeline" class="timeline" style={`--lanes:${lanes};height:${TIMELINE_HEIGHT}px`}>
+    <!-- named era bands down the gutter, drawn behind the bars -->
+    <div class="eras" aria-hidden="true">
+      {
+        bands.map((b) => (
+          <div class="era-band" style={`top:${b.top}px;height:${b.height}px`}>
+            <span class="era-band-name">{b.name}</span>
+          </div>
+        ))
+      }
+    </div>
+
     <!-- year gridlines down the left gutter -->
     <div class="marks" aria-hidden="true">
       {

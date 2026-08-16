@@ -50,6 +50,33 @@ export function eraFor(year: number): string {
   return "Modern era";
 }
 
+export interface EraBand {
+  name: string;
+  /** Top of the band in pixels from the top of the axis. */
+  top: number;
+  /** Band height in pixels. */
+  height: number;
+}
+
+/**
+ * The eras as vertical bands down the axis, clipped to [start, end]. Uses the
+ * same boundaries as {@link eraFor}, so the gutter labels and the live readout
+ * can never disagree about which era a year sits in.
+ */
+export function eraBands(): EraBand[] {
+  const bands: EraBand[] = [];
+  let lower: number = TIMELINE.start;
+  for (const era of ERAS) {
+    const upper = Math.min(era.until, TIMELINE.end);
+    if (upper <= lower) continue;
+    const top = yearToY(lower);
+    bands.push({ name: era.name, top, height: yearToY(upper) - top });
+    lower = upper;
+    if (lower >= TIMELINE.end) break;
+  }
+  return bands;
+}
+
 export interface PackedCiv extends Civilisation {
   /** Column index, 0-based, assigned so no two civs in a column overlap. */
   lane: number;
