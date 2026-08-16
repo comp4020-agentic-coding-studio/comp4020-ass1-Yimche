@@ -184,6 +184,17 @@ window.addEventListener("resize", () => {
   if (shownId) drawConnectors(shownId, relatedKinds(shownId));
 });
 
+// --- group rail: jump the horizontal scroll to a group ------------------
+// Where the lanes overflow the width (a phone), each rail control scrolls its
+// group's column into view. scrollIntoView respects scroll-padding-left, so the
+// group lands just past the gutter; block:"nearest" keeps the year unchanged.
+for (const btn of document.querySelectorAll<HTMLButtonElement>(".group-rail-btn")) {
+  btn.addEventListener("click", () => {
+    const head = document.getElementById(`group-${btn.dataset.group ?? ""}`);
+    head?.scrollIntoView({ inline: "start", block: "nearest" });
+  });
+}
+
 // --- detail popup -------------------------------------------------------
 const popup = $("#popup");
 if (popup) {

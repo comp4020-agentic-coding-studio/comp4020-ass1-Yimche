@@ -363,6 +363,31 @@ body {
   --civ-color: var(--r-andes);
 }
 
+/* group rail: a jump-to-group control. Hidden where every group already fits
+   the frame; shown as a fixed bottom strip on a phone (see the 640px block). */
+.group-rail {
+  display: none;
+}
+
+.group-rail-btn {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.group-rail-btn:focus-visible {
+  outline: 3px solid var(--hud-bg);
+  outline-offset: 2px;
+}
+
 .lanes {
   position: absolute;
   inset: 0 8px 0 var(--gutter);
@@ -786,9 +811,35 @@ body {
   }
 
   /* On a phone 32 lanes can't fit in one frame, so keep the wide canvas and
-     page across it group by group (see the snap + rail rules below). */
+     page across it group by group. Horizontal scroll snaps to each group's
+     column; proximity (not mandatory) never fights the vertical time-scroll. */
+  html {
+    scroll-snap-type: x proximity;
+    scroll-padding-left: var(--gutter);
+  }
+
   .timeline {
     min-width: calc(var(--gutter) + var(--lanes) * var(--min-lane));
+  }
+
+  .group-head {
+    scroll-snap-align: start;
+  }
+
+  /* the jump control, within thumb reach along the bottom edge */
+  .group-rail {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    display: flex;
+    gap: 8px;
+    padding: 8px 10px;
+    overflow-x: auto;
+    background: color-mix(in srgb, var(--paper) 92%, transparent);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 14px rgb(0 0 0 / 12%);
   }
 
   .hud {

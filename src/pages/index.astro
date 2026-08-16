@@ -73,6 +73,7 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
         groups.map((g) => (
           <span
             class="group-head"
+            id={`group-${g.id}`}
             data-region={slug(g.region)}
             style={`left:${(g.startLane / lanes) * 100}%;width:${(g.laneCount / lanes) * 100}%`}
           >
@@ -135,6 +136,19 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
     </div>
 
   </main>
+
+  <!-- group rail: jump straight to a column-group. Where the lanes can't share
+       the width (a phone), the page pages across the groups and this is the
+       deliberate jump control; hidden where every group already fits. -->
+  <nav class="group-rail" aria-label="Jump to a group">
+    {
+      groups.map((g) => (
+        <button type="button" class="group-rail-btn" data-group={g.id} data-region={slug(g.region)}>
+          {g.name}
+        </button>
+      ))
+    }
+  </nav>
 
   <!-- closing panel: the bottom of the axis, present day -->
   <footer class="outro">
