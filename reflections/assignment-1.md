@@ -2,31 +2,37 @@
 
 ## What was the breakthrough that moved the work forward?
 
-Realising I had built the wrong thing well, and cutting it. I first built a
-complete, working explainer of air-traffic control: I inverted the obvious order,
-writing the runway rules as failing tests and making them pass before drawing a
-pixel, and that discipline was real. But set beside the plain diagrammatic
-explainers I was measuring against, it answered a narrow question at length. The
-breakthrough was letting the whole thing go and starting over on a bigger one:
-how did we get here? A single scrollable axis of civilisations, where the point
-is that they overlap rather than take turns. The second breakthrough came from a
-critique of that: a timeline only answers "when". Adding "where" as a faint world
-map and "how they relate" as branching connectors, all hung on one focus gesture,
-turned a chart into an argument. What moved the work forward both times was
-subtraction and framing, not more features: removing a finished prototype, then
-refusing to answer the follow-up with two more disconnected widgets.
+Realising I had built the wrong thing well, and cutting it.
+I first built a complete, sorta working explainer of air-traffic control, but
+the issue with it was that it seemed a bit over-complicated for what was being
+asked for submission, and I was struggling to get the agent to work to my ideal.
+
+The breakthrough was letting the whole thing go and starting over on a new
+direction: "how did we get here?".
+A single scrollable axis of civilisations, where the point is to be able to
+easily view the coexistence of civilisations across human time.
+
+The second breakthrough was giving up on expecting the agent to understand
+spatial geometry and relative positioning.
+This especially was an issue with the original deign of the air traffic control,
+but also came up in this version where many objects overlapped or didn't make
+sense.
+Currently some arrows still look weird, but I believe that to be a fault of the
+library it used to generate the arrows, as I have seen similar behaviours in
+online diagram tools like draw.io.
+
+What moved the work forward both times was subtraction and framing, not more
+features: removing a finished prototype, then refusing to add bloat and visual
+clutter with more disconnected widgets to force something that worked.
 
 ## What did this work change about who I want to be as a software developer?
 
-I want to be someone who fixes the process, not just the output. The moment I am
-proudest of was not a feature. It was noticing that my own harness rule ("never
-commit red") contradicted the red-to-green evidence the work needed, and
-resolving it in the rules rather than quietly working around it. That carve-out
-then paid for itself repeatedly, on both the first project and the timeline, each
-new contract committed red on purpose and turned green next. The same instinct
-made me add an accessibility check the tool roster was missing instead of
-promising myself I would remember, and keep the map's geometry honest by running
-it through the same projection the tests assert on rather than eyeballing pins on
-a picture. Directing an agent rewards this: a correction that lives in the
-harness or a test holds, while one that lives in a prompt evaporates. I would
-rather build the backpressure than keep re-typing the same note.
+I want to be someone who fixes the process, not just the output.
+What tended to happen during this development is that I would give it an
+objective, and then after reviewing the output, I would go in and give it a 
+numbered list of steps and actions I wanted the agent to take and fix certain
+features / bugs.
+I found this to be tedium and wished that I could either directly interject in
+the process and correct such errors, however, AI currently still doesn't
+understand spacial geometry the way we humans do, and thus doesn't see any wrong
+in incorrect arrowheads, as long as the tip is at the goal.
