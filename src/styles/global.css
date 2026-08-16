@@ -6,6 +6,7 @@
   --gutter: 72px;
   --min-lane: 96px;
   --lane-gap: 10px;
+  --head-h: 42px;
   --ink: #241c14;
   --ink-soft: #5a4c3c;
   --paper: #f4e7d3;
@@ -232,10 +233,13 @@ body {
   );
 }
 
-/* named era bands: faint labels reading down the gutter */
+/* named era bands: faint labels reading down the gutter. Every time-coordinate
+   layer (eras, marks, lanes) starts a header band below the top so the sticky
+   group legend sits above the first bars rather than over them; the timeline
+   height is grown by the same band (see index.astro). */
 .eras {
   position: absolute;
-  inset: 0;
+  inset: var(--head-h) 0 0;
   pointer-events: none;
 }
 
@@ -265,7 +269,7 @@ body {
 
 .marks {
   position: absolute;
-  inset: 0;
+  inset: var(--head-h) 0 0;
 }
 
 .era-mark {
@@ -300,8 +304,8 @@ body {
 .group-heads {
   position: sticky;
   top: 0;
-  z-index: 4;
-  height: 30px;
+  z-index: 8; /* above a hovered bar (z-index 5) so the legend is never covered */
+  height: var(--head-h);
   margin: 0 8px 0 var(--gutter);
   pointer-events: none;
 }
@@ -390,7 +394,7 @@ body {
 
 .lanes {
   position: absolute;
-  inset: 0 8px 0 var(--gutter);
+  inset: var(--head-h) 8px 0 var(--gutter);
 }
 
 /* relation connectors: branches drawn on focus between related bars. The
@@ -808,6 +812,7 @@ body {
   :root {
     --gutter: 54px;
     --min-lane: 72px;
+    --head-h: 34px;
   }
 
   /* On a phone 32 lanes can't fit in one frame, so keep the wide canvas and

@@ -66,7 +66,7 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
     <p class="hero-hint" aria-hidden="true">Scroll to begin at {formatYear(TIMELINE.start)}</p>
   </header>
 
-  <main id="timeline" class="timeline" style={`--lanes:${lanes};height:${TIMELINE_HEIGHT}px`}>
+  <main id="timeline" class="timeline" style={`--lanes:${lanes};height:calc(${TIMELINE_HEIGHT}px + var(--head-h))`}>
     <!-- sticky column legend: one label per group band, over the lanes -->
     <div class="group-heads" aria-hidden="true">
       {

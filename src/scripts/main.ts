@@ -23,8 +23,13 @@ const reduceMotion =
 
 // --- live year readout --------------------------------------------------
 if (timelineEl && yearReadout) {
+  // the bars sit below a header band, so discount it when mapping scroll to year
+  const readHeadH = (): number =>
+    parseInt(getComputedStyle(document.documentElement).getPropertyValue("--head-h"), 10) || 0;
+  let headH = readHeadH();
+
   const readAt = (): { year: number; progress: number } => {
-    const top = timelineEl.offsetTop;
+    const top = timelineEl.offsetTop + headH;
     const docY = window.scrollY + window.innerHeight / 2;
     const into = clamp(docY - top, 0, TIMELINE_HEIGHT);
     return { year: yToYear(into), progress: into / TIMELINE_HEIGHT };
@@ -50,7 +55,10 @@ if (timelineEl && yearReadout) {
   };
 
   window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", paint);
+  window.addEventListener("resize", () => {
+    headH = readHeadH();
+    paint();
+  });
   paint();
 }
 
@@ -105,7 +113,10 @@ const drawConnectors = (id: string, related: Map<string, RelationKind>): void =>
   const from = barById.get(id);
   if (!from) return;
   const tl = timelineEl.getBoundingClientRect();
-  connectors.setAttribute("viewBox", `0 0 ${tl.width} ${TIMELINE_HEIGHT}`);
+  // viewBox spans the whole timeline box (bars sit below a header band, so the
+  // box is taller than TIMELINE_HEIGHT); origins are measured from tl.top, so a
+  // 1:1 viewBox keeps the branches aligned with the bars whatever the band.
+  connectors.setAttribute("viewBox", `0 0 ${tl.width} ${tl.height}`);
   // A bar spans its whole life, so its centre is often scrolled off-screen.
   // Anchor branches to the birth point instead: horizontally centred, at the
   // bar's start (top) edge. Branches then read as a lineage between births.
