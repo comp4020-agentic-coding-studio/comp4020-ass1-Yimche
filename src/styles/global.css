@@ -569,7 +569,11 @@ body {
    That keeps every civilisation identifiable wherever you are on the axis. */
 .civ-icon {
   position: sticky;
-  top: calc(var(--head-h) + 8px);
+
+  /* rides just below the header band by default; main.ts overrides --icon-top
+     for bars whose column sits under the fixed year readout, so their emblem
+     pins below the HUD instead of hiding behind it */
+  top: var(--icon-top, calc(var(--head-h) + 8px));
   z-index: 2;
   display: grid;
   place-items: center;

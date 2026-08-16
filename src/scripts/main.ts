@@ -103,6 +103,29 @@ const mapPins = Array.from(document.querySelectorAll<SVGElement>(".map-pin[data-
 const barById = new Map(civBars.map((b) => [b.dataset.civ ?? "", b]));
 const SVG_NS = "http://www.w3.org/2000/svg";
 
+// The sticky icons pin near the top of the viewport, right where the fixed year
+// readout sits, so a leftmost bar's emblem would hide behind it. Any bar whose
+// icon column overlaps the HUD box gets its sticky top pushed below the HUD. The
+// HUD is fixed and the bar x-positions are percentage-based, so this only needs
+// recomputing on load and resize, never on scroll.
+const layoutIcons = (): void => {
+  if (!hudEl) return;
+  const hud = hudEl.getBoundingClientRect();
+  const half = 15; // the icon is 30px wide, centred in its bar
+  for (const b of civBars) {
+    const icon = b.querySelector<HTMLElement>(".civ-icon");
+    if (!icon) continue;
+    const r = b.getBoundingClientRect();
+    const cx = r.left + r.width / 2;
+    const underHud = cx + half > hud.left && cx - half < hud.right;
+    if (underHud) icon.style.setProperty("--icon-top", `${Math.round(hud.bottom + 8)}px`);
+    else icon.style.removeProperty("--icon-top");
+  }
+};
+layoutIcons();
+requestAnimationFrame(layoutIcons); // rerun once fonts and layout have settled
+window.addEventListener("resize", layoutIcons);
+
 let shownId: string | null = null; // the civ currently lit
 let lockedId: string | null = null; // a civ pinned lit while its popup is open
 
