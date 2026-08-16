@@ -1,6 +1,7 @@
 ---
 import Layout from "../layouts/Layout.astro";
 import WorldMap from "../components/WorldMap.astro";
+import ArchIcons from "../components/ArchIcons.astro";
 import {
   eraBands,
   eraMarks,
@@ -30,6 +31,9 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
 <Layout title="How did we get here?">
   <!-- faint world-map backdrop: where each civilisation developed -->
   <WorldMap />
+
+  <!-- hidden sprite: one architecture silhouette per civilisation -->
+  <ArchIcons />
 
   <nav class="site-nav" aria-label="Site">
     <a href="#timeline">Skip to the timeline</a>
@@ -87,6 +91,9 @@ const range = (start: number, end: number) => `${formatYear(start)} to ${formatY
 
     <!-- relation connectors, drawn on focus by main.ts (viewBox set in px) -->
     <svg class="connectors" aria-hidden="true" preserveAspectRatio="none"></svg>
+
+    <!-- birth-year medallions, drawn on focus by main.ts (positioned in px) -->
+    <div class="nodes" aria-hidden="true"></div>
 
     <!-- one bar per civilisation, packed into non-overlapping lanes -->
     <div class="lanes">
