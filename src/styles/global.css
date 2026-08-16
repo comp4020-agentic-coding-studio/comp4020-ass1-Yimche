@@ -1,33 +1,29 @@
-/* Light green + white. The palette is committed to light on every machine:
-   the brief asked for light green and white, so there is no dark override to
-   drift out of sync. */
-:root {
-  --bg: #eef6f0;
-  --panel: #fff;
-  --ink: #14271c;
-  --ink-soft: #52685b;
-  --line: #d3e6d9;
-  --accent: #2f8f5b;
-  --accent-ink: #fff;
-  --danger: #c2410c;
-  --sky: #e6f4ec;
-  --sky-2: #f6fbf7;
-  --hill-far: #cfe8d6;
-  --ground: #a9cbb3;
-  --structure: #7d9a85; /* front face */
-  --structure-2: #556f5e; /* shaded side face */
-  --structure-top: #a7c1af; /* lit top face */
-  --glass: #cdead9;
-  --bridge: #9fb6a6;
-  --tarmac: #3a4d42;
-  --tarmac-line: #eaf3ee;
+/* Timeline of civilisations. Time runs top to bottom; civilisations are bars in
+   packed lanes across the width. The look is a single committed palette (warm
+   antiquity fading to cool modernity), not a themed one. */
 
-  /* the flight-information board reads as a real airport display */
-  --board-bg: #14201a;
-  --board-ink: #eafff2;
-  --board-amber: #f6b73c;
-  --board-line: #253a2e;
-  --board-led: #35d07f;
+:root {
+  --gutter: 72px;
+  --min-lane: 120px;
+  --max-timeline: 1200px;
+  --lane-gap: 10px;
+  --ink: #241c14;
+  --ink-soft: #5a4c3c;
+  --paper: #f4e7d3;
+  --line: rgb(60 46 30 / 18%);
+  --hud-bg: #241c14;
+  --hud-ink: #f4e7d3;
+  --accent: #b5651d;
+
+  /* region colours */
+  --r-mesopotamia: #c26b3f;
+  --r-egypt-africa: #cf9b1b;
+  --r-south-asia: #b5476b;
+  --r-east-asia: #c0392b;
+  --r-mediterranean-europe: #2e75a8;
+  --r-persia-near-east: #6a4c93;
+  --r-mesoamerica: #1f9187;
+  --r-andes: #8a6d3b;
 
   color-scheme: light;
 }
@@ -36,528 +32,439 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
-  line-height: 1.55;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--paper);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  line-height: 1.5;
 }
 
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* minimal navigation landmark: a skip link, hidden until focused */
-.site-nav {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 50;
-}
-
+/* skip link: hidden until focused */
 .site-nav a {
-  position: absolute;
-  left: -9999px;
-  padding: 0.5rem 0.8rem;
-  color: var(--accent);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 0 0 8px;
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 40;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--hud-bg);
+  color: var(--hud-ink);
+  transform: translateY(-150%);
+  transition: transform 0.15s ease;
 }
 
 .site-nav a:focus {
-  left: 0;
+  transform: translateY(0);
 }
 
-/* ---- stage + scene -------------------------------------------------- */
-.stage {
-  position: relative;
-  width: 100%;
-  min-height: 100dvh;
+/* ------- heads-up display: the readout the scroll drives ------- */
+.hud {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 30;
+  padding: 14px 18px;
+  min-width: 170px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--hud-bg) 92%, transparent);
+  color: var(--hud-ink);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+  backdrop-filter: blur(4px);
 }
 
-.scene {
-  position: relative;
-  width: 100%;
-  height: 100dvh;
-  overflow: hidden;
-  background: var(--sky);
+.hud-year {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
-.backdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.hud-era {
+  margin: 2px 0 10px;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--hud-ink) 75%, transparent);
 }
 
-.pane {
-  fill: var(--glass);
-}
-
-.sign {
-  fill: var(--accent);
-}
-
-/* ---- runway (the scarce resource) ----------------------------------- */
-.runways {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-/* the single runway: left side, on the apron at ground level */
-.runway {
-  position: absolute;
-  left: 2%;
-  top: 71%;
-  width: 38%;
-  height: 13%;
-  display: flex;
-  align-items: flex-end;
-  padding: 0 0 0.3rem 0.6rem;
-  background: var(--tarmac);
+.hud-progress {
+  height: 5px;
   border-radius: 3px;
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--tarmac-line) 0 14px,
-    #fff0 14px 40px
-  );
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: 78% 2px;
-  box-shadow: inset 0 0 0 2px #ffffff1f;
+  background: rgb(255 255 255 / 18%);
+  overflow: hidden;
 }
 
-.runway.occupied {
-  box-shadow: inset 0 0 0 2px var(--danger);
-}
-
-.runway-id {
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  color: #fffc;
-}
-
-/* ---- planes --------------------------------------------------------- */
-.planes {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.plane {
-  position: absolute;
-  z-index: 3;
-  width: clamp(46px, 6vw, 88px);
-  padding: 0;
-  background: transparent;
-  border: 0;
-  transform: translate(-50%, -50%);
-  transition:
-    left 0.8s ease,
-    top 0.8s ease;
-  cursor: pointer;
-  pointer-events: auto;
-  filter: drop-shadow(0 3px 3px #0003);
-}
-
-.plane svg {
+.hud-progress-fill {
   display: block;
+  height: 100%;
   width: 100%;
-  height: auto;
-  transform: rotate(var(--rot, 0deg));
-  transform-origin: center;
-  transition: transform 0.8s ease;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: var(--accent);
+  transition: transform 0.1s linear;
 }
 
-.plane-body {
-  fill: var(--ink);
-}
-
-.plane-wing {
-  fill: var(--structure-2);
-}
-
-.plane-hi {
-  fill: #ffffff5c;
-}
-
-.plane-tag {
-  position: absolute;
-  top: -1.1em;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0 5px;
-  font-size: 0.6rem;
-  font-weight: 700;
-  white-space: nowrap;
-  color: var(--ink);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-}
-
-.plane.directing {
-  filter: drop-shadow(0 0 7px var(--accent));
-}
-
-.plane.directing .plane-body {
-  fill: var(--accent);
-}
-
-.plane.directing .plane-wing {
-  fill: #1f6b41;
-}
-
-.plane[data-phase="holding"] {
-  animation: drift 3.4s ease-in-out infinite alternate;
-}
-
-.plane[data-phase="gone"] {
-  opacity: 0;
-}
-
-@keyframes drift {
-  from {
-    transform: translate(-50%, -50%) translateX(-7px);
-  }
-
-  to {
-    transform: translate(-50%, -50%) translateX(7px);
-  }
-}
-
-/* ---- flight-information board (top-left) ---------------------------- */
-.board {
-  position: absolute;
-  top: clamp(0.6rem, 2vh, 1.4rem);
-  left: clamp(0.6rem, 2vw, 1.4rem);
-  z-index: 5;
-  max-width: min(72vw, 360px);
-  padding: 0.6rem 0.75rem 0.75rem;
-  font-family: ui-monospace, "SF Mono", "Cascadia Mono", "Roboto Mono", Menlo, monospace;
-  color: var(--board-ink);
-  background: var(--board-bg);
-  border: 2px solid #000;
-  border-radius: 0;
-  box-shadow:
-    inset 0 0 0 1px var(--board-line),
-    0 8px 22px #00000038;
-}
-
-.board-title {
+/* ------- hero ------- */
+.hero {
   display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin: 0 0 0.6rem;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  text-transform: uppercase;
-  color: var(--board-amber);
-}
-
-.board-title::before {
-  width: 7px;
-  height: 7px;
-  content: "";
-  background: var(--board-led);
-  border-radius: 0;
-  box-shadow: 0 0 6px var(--board-led);
-}
-
-.board-cols {
-  display: flex;
-  gap: 0.85rem;
-}
-
-.board-col {
-  flex: 1;
-  min-width: 0;
-}
-
-.board-head {
-  margin: 0 0 0.4rem;
-  padding-bottom: 0.22rem;
-  font-size: 0.58rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #9fb9a8;
-  border-bottom: 1px solid var(--board-line);
-}
-
-.board-list {
-  display: grid;
-  gap: 0.28rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.board-row {
-  display: flex;
-  gap: 0.5rem;
-  align-items: stretch;
-  justify-content: space-between;
-  font-size: 0.72rem;
-}
-
-.board-name {
-  align-self: center;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  color: var(--board-ink);
-}
-
-.board-status {
-  padding: 0.1rem 0.32rem;
-  font-size: 0.6rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--board-amber);
-  background: #00000047;
-  border: 1px solid var(--board-line);
-  border-radius: 0;
-}
-
-/* ---- tower callout -------------------------------------------------- */
-.callout {
-  position: absolute;
-  left: 50%;
-  bottom: clamp(4.5rem, 12vh, 7rem);
-  z-index: 5;
-  max-width: min(90vw, 40rem);
-  margin: 0;
-  padding: 0.6rem 1rem;
-  text-align: center;
-  color: var(--ink);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-left: 4px solid var(--accent);
-  border-radius: 10px;
-  box-shadow: 0 6px 20px #0000000f;
-  transform: translateX(-50%);
-  font-size: clamp(0.9rem, 1.6vw, 1.05rem);
-}
-
-/* ---- clickable regions ---------------------------------------------- */
-.hotspot {
-  position: absolute;
-  z-index: 2;
-  display: flex;
+  flex-direction: column;
   justify-content: center;
-  padding: 0.4rem;
-  background: transparent;
-  border: 1px dashed transparent;
-  border-radius: 10px;
-  cursor: pointer;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  min-height: 100vh;
+  padding: 24px;
+  text-align: center;
+  background: radial-gradient(120% 90% at 50% 0%, #fbf2e2 0%, var(--paper) 70%);
 }
 
-.hotspot:hover,
-.hotspot:focus-visible {
-  background: #2f8f5b12;
-  border-color: var(--accent);
+.hero-title {
+  margin: 0;
+  max-width: 14ch;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.4rem, 7vw, 5rem);
+  line-height: 1.05;
 }
 
-.hotspot-label {
-  padding: 2px 8px;
-  font-size: 0.62rem;
+.hero-lead {
+  margin: 0;
+  max-width: 46ch;
+  font-size: clamp(1rem, 2.4vw, 1.3rem);
+  color: var(--ink-soft);
+}
+
+.hero-hint {
+  margin-top: 12px;
+  font-size: 0.9rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--accent);
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 999px;
+  animation: nudge 1.8s ease-in-out infinite;
+}
+
+@keyframes nudge {
+  50% {
+    transform: translateY(6px);
+  }
+}
+
+/* ------- the timeline ------- */
+.timeline {
+  position: relative;
+  width: 100%;
+  min-width: calc(var(--gutter) + var(--lanes) * var(--min-lane));
+  max-width: var(--max-timeline);
+  margin: 0 auto;
+  background: linear-gradient(
+    to bottom,
+    #f4e7d3 0%,
+    #efd9b8 18%,
+    #e7cfa6 34%,
+    #dcccad 52%,
+    #c8c7b4 70%,
+    #aab4ba 86%,
+    #8f9ea9 100%
+  );
+}
+
+.marks {
+  position: absolute;
+  inset: 0;
+}
+
+.era-mark {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--line);
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transform: translateY(6px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
 }
 
-.hotspot:hover .hotspot-label,
-.hotspot:focus-visible .hotspot-label {
+.era-mark.in-view {
   opacity: 1;
+  transform: none;
 }
 
-.hotspot-gate {
-  top: 32%;
-  left: 46%;
-  width: 34%;
-  height: 30%;
-  align-items: center;
+.era-mark-label {
+  position: absolute;
+  top: 4px;
+  left: 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink-soft);
 }
 
-.hotspot-tower {
-  top: 19%;
-  left: 81%;
-  width: 16%;
-  height: 43%;
-  align-items: flex-start;
+.lanes {
+  position: absolute;
+  inset: 0 8px 0 var(--gutter);
 }
 
-/* ---- playback controls ---------------------------------------------- */
-.controls {
-  position: fixed;
-  left: 50%;
-  bottom: clamp(0.8rem, 2vh, 1.4rem);
-  z-index: 6;
-  display: flex;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  box-shadow: 0 6px 20px #00000014;
-  transform: translateX(-50%);
-}
-
-button {
-  font: inherit;
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
-  color: var(--accent-ink);
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 999px;
+/* one civilisation */
+.civ {
+  position: absolute;
+  left: calc(var(--lane) / var(--lanes) * 100%);
+  width: calc(100% / var(--lanes) - var(--lane-gap));
+  padding: 10px 10px 8px;
+  border: 0;
+  border-left: 4px solid rgb(0 0 0 / 28%);
+  border-radius: 8px;
+  background: var(--civ-color, #999);
+  color: #fff;
+  text-align: left;
   cursor: pointer;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease,
+    filter 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-button:hover {
-  filter: brightness(1.05);
+.civ.in-view {
+  opacity: 1;
+  transform: none;
 }
 
-button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
+.civ:hover,
+.civ:focus-visible {
+  filter: brightness(1.08);
+  box-shadow: 0 6px 18px rgb(0 0 0 / 30%);
+  outline: none;
 }
 
-.controls #step,
-.controls #reset,
-.controls #speed {
-  color: var(--accent);
-  background: transparent;
-}
-
-:focus-visible {
-  outline: 3px solid var(--accent);
+.civ:focus-visible {
+  outline: 3px solid var(--hud-bg);
   outline-offset: 2px;
 }
 
-/* ---- popups --------------------------------------------------------- */
+.civ-name {
+  display: block;
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 700;
+  font-size: 1.02rem;
+  line-height: 1.15;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+}
+
+.civ-dates {
+  display: block;
+  margin-top: 3px;
+  font-size: 0.76rem;
+  opacity: 0.92;
+}
+
+/* region colours drive each bar */
+.civ[data-region="mesopotamia"] {
+  --civ-color: var(--r-mesopotamia);
+}
+
+.civ[data-region="egypt-africa"] {
+  --civ-color: var(--r-egypt-africa);
+}
+
+.civ[data-region="south-asia"] {
+  --civ-color: var(--r-south-asia);
+}
+
+.civ[data-region="east-asia"] {
+  --civ-color: var(--r-east-asia);
+}
+
+.civ[data-region="mediterranean-europe"] {
+  --civ-color: var(--r-mediterranean-europe);
+}
+
+.civ[data-region="persia-near-east"] {
+  --civ-color: var(--r-persia-near-east);
+}
+
+.civ[data-region="mesoamerica"] {
+  --civ-color: var(--r-mesoamerica);
+}
+
+.civ[data-region="andes"] {
+  --civ-color: var(--r-andes);
+}
+
+/* closing panel: present day, the bottom of the axis */
+.outro {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  min-height: 80vh;
+  padding: 40px 24px 64px;
+  text-align: center;
+  color: var(--hud-ink);
+  background: linear-gradient(to bottom, #8f9ea9 0%, #4a5560 100%);
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+}
+
+.outro.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+.outro-year {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 700;
+}
+
+.outro-title {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.6rem, 4vw, 2.4rem);
+  font-weight: 400;
+  color: color-mix(in srgb, var(--hud-ink) 88%, transparent);
+}
+
+.outro-lead {
+  margin: 0;
+  max-width: 48ch;
+  color: color-mix(in srgb, var(--hud-ink) 78%, transparent);
+}
+
+/* ------- detail popup ------- */
+.popup[hidden] {
+  display: none;
+}
+
 .popup {
   position: fixed;
   inset: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.popup[hidden] {
-  display: none;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
 }
 
 .popup-backdrop {
   position: absolute;
   inset: 0;
-  background: #14271c66;
-  border: 0;
-  cursor: pointer;
+  background: rgb(20 14 8 / 55%);
 }
 
 .popup-card {
   position: relative;
-  z-index: 1;
-  width: min(92vw, 34rem);
-  max-height: 86dvh;
-  padding: clamp(1.2rem, 3vw, 2rem);
-  overflow-y: auto;
-  background: var(--panel);
-  border: 1px solid var(--line);
+  width: min(520px, 100%);
+  max-height: 85vh;
+  overflow: auto;
+  padding: 28px;
   border-radius: 16px;
-  box-shadow: 0 20px 60px #0000002e;
+  background: #fffdf8;
+  box-shadow: 0 24px 60px rgb(0 0 0 / 40%);
 }
 
 .popup-close {
   position: absolute;
-  top: 0.8rem;
-  right: 0.8rem;
-  padding: 0.3rem 0.7rem;
-  color: var(--ink-soft);
-  background: transparent;
+  top: 14px;
+  right: 14px;
+  padding: 6px 12px;
   border: 1px solid var(--line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.popup-close:hover,
+.popup-close:focus-visible {
+  background: var(--paper);
+  outline: none;
+}
+
+.popup-region {
+  margin: 0;
+  font-size: 0.78rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent);
 }
 
 .popup-title {
-  margin: 0 0 0.6rem;
-  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  margin: 4px 0 2px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.8rem;
 }
 
-.popup-body {
+.popup-range {
+  margin: 0 0 14px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.popup-blurb {
+  margin: 0 0 16px;
+}
+
+.popup-events {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 8px;
   color: var(--ink-soft);
 }
 
-.popup-body p {
-  margin: 0 0 0.8rem;
-}
-
-.popup-body ul {
-  margin: 0;
-  padding-left: 1.1rem;
-}
-
-.popup-body li {
-  margin: 0.4rem 0;
-}
-
-.popup-body strong {
+.popup-event-year {
+  font-weight: 700;
   color: var(--ink);
 }
 
-/* ---- responsive ----------------------------------------------------- */
+/* ------- responsive ------- */
 @media (width <= 640px) {
-  .board {
-    max-width: 68vw;
+  :root {
+    --gutter: 54px;
+    --min-lane: 116px;
   }
 
-  .board-cols {
-    flex-direction: column;
-    gap: 0.55rem;
+  .hud {
+    top: 12px;
+    left: 12px;
+    padding: 10px 14px;
+    min-width: 138px;
   }
 
-  .hotspot-label {
-    opacity: 1;
-  }
-
-  .callout {
-    bottom: 5.2rem;
-    font-size: 0.86rem;
+  .hud-year {
+    font-size: 1.6rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .plane {
-    transition: none;
-    animation: none;
+  html {
+    scroll-behavior: auto;
   }
 
-  .plane svg {
+  .civ,
+  .era-mark,
+  .outro,
+  .hero-hint,
+  .hud-progress-fill {
     transition: none;
-  }
-
-  .plane[data-phase="holding"] {
     animation: none;
   }
 }

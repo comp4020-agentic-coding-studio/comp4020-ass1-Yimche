@@ -1,17 +1,119 @@
 ---
 import Layout from "../layouts/Layout.astro";
+import {
+  eraMarks,
+  formatYear,
+  packLanes,
+  TIMELINE,
+  TIMELINE_HEIGHT,
+  yearToY,
+} from "../scripts/timeline";
 
-// Placeholder page. The ATC prototype was removed here; the scrollable
-// timeline of civilisations lands in the following commits.
+// Everything the visitor scrolls through is rendered server-side from the model,
+// so the timeline is a readable document even before the script runs. The script
+// only adds the live year readout, the reveal-on-scroll, and the detail popups.
+const { packed, lanes } = packLanes();
+const marks = eraMarks();
+
+const slug = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+const range = (start: number, end: number) => `${formatYear(start)} to ${formatYear(end)}`;
 ---
 
 <Layout title="How did we get here?">
   <nav class="site-nav" aria-label="Site">
-    <a href="#main">Skip to content</a>
+    <a href="#timeline">Skip to the timeline</a>
   </nav>
 
-  <main id="main">
-    <h1>How did we get here?</h1>
-    <p>A scrollable timeline of civilisations is under construction.</p>
+  <!-- fixed heads-up display: the readout the scroll drives -->
+  <aside class="hud" aria-hidden="true">
+    <p class="hud-year" id="year-readout">{formatYear(TIMELINE.start)}</p>
+    <p class="hud-era" id="era-readout">Bronze Age</p>
+    <div
+      class="hud-progress"
+      id="timeline-progress"
+      role="progressbar"
+      aria-label="Progress through time"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    >
+      <span class="hud-progress-fill"></span>
+    </div>
+  </aside>
+
+  <header class="hero">
+    <h1 class="hero-title">How did we get here?</h1>
+    <p class="hero-lead">
+      Civilisations did not rise one after another. They overlapped, traded, and
+      toppled each other. Scroll down through five and a half thousand years and
+      watch them run side by side.
+    </p>
+    <p class="hero-hint" aria-hidden="true">Scroll to begin at {formatYear(TIMELINE.start)}</p>
+  </header>
+
+  <main id="timeline" class="timeline" style={`--lanes:${lanes};height:${TIMELINE_HEIGHT}px`}>
+    <!-- year gridlines down the left gutter -->
+    <div class="marks" aria-hidden="true">
+      {
+        marks.map((m) => (
+          <div class="era-mark" style={`top:${m.y}px`}>
+            <span class="era-mark-label">{m.label}</span>
+          </div>
+        ))
+      }
+    </div>
+
+    <!-- one bar per civilisation, packed into non-overlapping lanes -->
+    <div class="lanes">
+      {
+        packed.map((c) => (
+          <button
+            type="button"
+            class="civ"
+            data-civ={c.id}
+            data-region={slug(c.region)}
+            aria-label={`${c.name}, ${range(c.start, c.end)}, ${c.region}. Open details.`}
+            style={`--lane:${c.lane};top:${yearToY(c.start)}px;height:${
+              yearToY(c.end) - yearToY(c.start)
+            }px`}
+          >
+            <span class="civ-name">{c.name}</span>
+            <span class="civ-dates">{range(c.start, c.end)}</span>
+          </button>
+        ))
+      }
+    </div>
+
   </main>
+
+  <!-- closing panel: the bottom of the axis, present day -->
+  <footer class="outro">
+    <p class="outro-year">{formatYear(TIMELINE.end)}</p>
+    <h2 class="outro-title">Here we are.</h2>
+    <p class="outro-lead">
+      Every one of those lanes overlapped with the next. The story was never a
+      relay of one civilisation handing off to another, but a crowded, parallel
+      run that got us here.
+    </p>
+  </footer>
+
+  <!-- detail popup, populated by main.ts from the dataset -->
+  <div id="popup" class="popup" hidden>
+    <div class="popup-backdrop" data-close></div>
+    <div class="popup-card" role="dialog" aria-modal="true" aria-labelledby="popup-title">
+      <button class="popup-close" type="button" data-close aria-label="Close details">Close</button>
+      <p class="popup-region" id="popup-region"></p>
+      <h2 class="popup-title" id="popup-title"></h2>
+      <p class="popup-range" id="popup-range"></p>
+      <p class="popup-blurb" id="popup-blurb"></p>
+      <ol class="popup-events" id="popup-events"></ol>
+    </div>
+  </div>
+
+  <script src="../scripts/main.ts"></script>
 </Layout>
