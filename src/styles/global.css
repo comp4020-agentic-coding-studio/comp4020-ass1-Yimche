@@ -293,6 +293,10 @@ body {
   /* above the era-band name so a year label crossing the sticky era text reads
      over it rather than tangling with the vertical letters */
   z-index: 1;
+
+  /* decorative gridlines only: never swallow the pointer, or a hover on a bar
+     body lands here instead of on the civilisation it covers */
+  pointer-events: none;
 }
 
 .era-mark {
@@ -328,7 +332,7 @@ body {
 }
 
 .era-mark-label.is-shifted {
-  transform: translateX(var(--gutter));
+  transform: translateX(calc(var(--gutter) / 3));
 }
 
 /* sticky column legend: names the group each block of lanes belongs to, floating
@@ -723,7 +727,7 @@ body {
   justify-content: center;
   align-items: center;
   gap: 12px;
-  min-height: 80vh;
+  min-height: 100vh;
   padding: 40px 24px 64px;
   text-align: center;
   color: var(--hud-ink);
